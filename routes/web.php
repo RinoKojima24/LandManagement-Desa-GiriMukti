@@ -21,7 +21,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', fn() => view('Auth.login'))->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login_post');
 });
-
+    Route::get('/offline', function () {
+    return view('offline');
+    });
 // Logout
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 

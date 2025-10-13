@@ -1,9 +1,33 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <!-- Basic Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LandManage">
+    <meta name="description" content="Land Management System Application">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/icons/icon-192x192.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/icons/icon-192x192.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('images/icons/icon-152x152.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/icons/icon-192x192.png') }}">
+
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="{{ asset('images/icons/icon-144x144.png') }}">
+    <meta name="msapplication-TileColor" content="#4CAF50">
+
     <title>@yield('title', 'Desa Girimukti - Portal Layanan Digital')</title>
 
     {{-- Tailwind CSS --}}
@@ -53,11 +77,36 @@
         html {
             scroll-behavior: smooth;
         }
+
+        /* Install Button Style */
+        #installBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #installBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        #installBtn:active {
+            transform: translateY(0);
+        }
     </style>
 
     @stack('styles')
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
+
     {{-- Navbar --}}
     <nav class="bg-white navbar-shadow sticky top-0 z-50">
         <div class="container mx-auto px-4">
@@ -79,9 +128,14 @@
                         <i class="fas fa-home mr-1"></i> Beranda
                     </a>
 
+                    {{-- Install PWA Button --}}
+                    <button id="installBtn" onclick="installPWA()">
+                        <i class="fas fa-download"></i> Install App
+                    </button>
+
                     @auth
                         <a href="{{ route('profile') }}" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition duration-200">
-                            <i class="fas fa-user mr-1"></i> profile
+                            <i class="fas fa-user mr-1"></i> Profile
                         </a>
                     @else
                         <a href="{{ url('/login') }}" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition duration-200">
@@ -102,9 +156,15 @@
                     <a href="{{ url('/') }}" class="block text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-4 py-2 rounded transition">
                         <i class="fas fa-home mr-2"></i> Beranda
                     </a>
+
+                    {{-- Install PWA Button Mobile --}}
+                    <button id="installBtnMobile" onclick="installPWA()" class="w-full text-left px-4 py-2 rounded" style="display:none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <i class="fas fa-download mr-2"></i> Install App
+                    </button>
+
                     @auth
                         <a href="{{ route('profile') }}" class="block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-center">
-                            <i class="fas fa-user mr-2"></i> profile
+                            <i class="fas fa-user mr-2"></i> Profile
                         </a>
                     @else
                         <a href="{{ url('/login') }}" class="block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-center">
@@ -258,6 +318,92 @@
                 setTimeout(() => alert.remove(), 500);
             });
         }, 5000);
+    </script>
+
+    {{-- PWA Service Worker Script --}}
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registered successfully:', registration.scope);
+
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('🔄 New version available! Refresh to update.');
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('❌ Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent default install prompt
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show custom install buttons
+            const installBtn = document.getElementById('installBtn');
+            const installBtnMobile = document.getElementById('installBtnMobile');
+
+            if (installBtn) installBtn.style.display = 'flex';
+            if (installBtnMobile) installBtnMobile.style.display = 'block';
+
+            console.log('💡 App can be installed');
+        });
+
+        // Function to trigger install
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('✅ User accepted the install prompt');
+
+                        // Hide install buttons
+                        const installBtn = document.getElementById('installBtn');
+                        const installBtnMobile = document.getElementById('installBtnMobile');
+                        if (installBtn) installBtn.style.display = 'none';
+                        if (installBtnMobile) installBtnMobile.style.display = 'none';
+                    } else {
+                        console.log('❌ User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // Track if app is installed
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA was installed');
+            deferredPrompt = null;
+
+            // Hide install buttons after installation
+            const installBtn = document.getElementById('installBtn');
+            const installBtnMobile = document.getElementById('installBtnMobile');
+            if (installBtn) installBtn.style.display = 'none';
+            if (installBtnMobile) installBtnMobile.style.display = 'none';
+        });
+
+        // Check if running as PWA
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('🚀 Running as PWA');
+            // Hide install buttons if already installed
+            const installBtn = document.getElementById('installBtn');
+            const installBtnMobile = document.getElementById('installBtnMobile');
+            if (installBtn) installBtn.style.display = 'none';
+            if (installBtnMobile) installBtnMobile.style.display = 'none';
+        }
     </script>
 
     @stack('scripts')
