@@ -70,18 +70,23 @@ return new class extends Migration
             $table->id('id_permohonan');
             $table->string('nik', 16)->unique();
             $table->string('nama_lengkap', 100);
+            $table->string('no_wa', 16);
+
             $table->enum('jenis_kelamin', ['L', 'P']);
             $table->string('keperluan')->nullable()->comment('Hanya di gunakan untuk jenis surat_keterangan');
             $table->string('alamat', 244)->nullable();
             $table->string('ktp')->nullable();
             $table->string('dokumen_pendukung')->nullable();
-            $table->unsignedInteger('id_jenis_surat')->nullable();
+            // $table->unsignedInteger('id_jenis_surat')->nullable();
             $table->enum('status', ['pending', 'verifikasi', 'reject'])->default('pending');
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
 
             $table->index('nik', 'idx_penduduk_nik');
-            $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+            // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+
+            $table->unsignedBigInteger('id_jenis_surat')->nullable();
+            // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
         });
 
         // 7. Surat Permohonan Table
@@ -93,12 +98,16 @@ return new class extends Migration
             $table->string('alamat', 244);
             $table->string('ktp')->nullable();
             $table->string('dokumen_pendukung')->nullable();
-            $table->unsignedInteger('id_jenis_surat')->nullable();
+            // $table->unsignedInteger('id_jenis_surat')->nullable();
             $table->enum('status', ['pending', 'verifikasi', 'reject'])->default('pending');
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
 
-            $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+            // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+
+            $table->unsignedBigInteger('id_jenis_surat')->nullable();
+            // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+
         });
 
         // 8. Wilayah Administratif Table
@@ -112,6 +121,26 @@ return new class extends Migration
             $table->text('koordinat_batas')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('penduduk', function (Blueprint $table) {
+            $table->id('id_penduduk');
+            $table->string('nik', 100);
+            $table->string('nama_lengkap');
+            $table->string('tempat_lahir', 50);
+            $table->date('tanggal_lahir');
+            $table->string('jenis_kelamin', 5);
+            $table->text('alamat');
+            $table->string('rt_rw', 80);
+            $table->unsignedBigInteger('id_wilayah');
+            $table->string('no_telepon', 100);
+            $table->string('pekerjaan', 100);
+            $table->string('status_perkawinan', 100);
+            $table->string('agama', 100);
+            $table->string('pendidikan_terakhir', 100);
+
+            $table->timestamps();
+        });
+
 
         // 9. Jenis Tanah Table
         Schema::create('jenis_tanah', function (Blueprint $table) {
@@ -163,6 +192,8 @@ return new class extends Migration
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_berakhir')->nullable();
             $table->string('nomor_sertifikat', 100)->nullable();
+            $table->string('persentase_kepemilikan', 100)->nullable();
+
             $table->enum('jenis_sertifikat', ['SHM', 'SHGB', 'SHSRS', 'SHGU', 'girik', 'petok', 'lainnya'])->nullable();
             $table->boolean('is_active')->default(true);
             $table->text('keterangan')->nullable();

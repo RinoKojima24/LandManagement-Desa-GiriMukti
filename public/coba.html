@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Curved Polygon Example</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Leaflet.curve Plugin -->
+    <script src="https://unpkg.com/leaflet.curve"></script>
+
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<script>
+// =======================
+// 1. INIT MAP
+// =======================
+let map = L.map('map').setView([-6.2, 106.8], 13);
+
+// Base layer
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+}).addTo(map);
+
+// =======================
+// 2. DATA TITIK POLYGON
+// =======================
+let polygonCoords = [
+    [-6.2011, 106.8010],
+    [-6.2020, 106.8030],
+    [-6.2035, 106.8020],
+    [-6.2030, 106.8000]
+];
+
+// =======================
+// 3. TAMPILKAN MARKER
+// =======================
+
+polygonCoords.forEach((coord, i) => {
+    L.marker(coord).addTo(map).bindPopup("Titik Polygon " + (i + 1));
+});
+
+// =======================
+// 4. BIKIN POLYGON MELENGKUNG asdasdasdasdsadasdasdasd
+// =======================
+
+// Buat format kurva
+let curvePoints = [];
+
+for (let i = 0; i < polygonCoords.length; i++) {
+    let p1 = polygonCoords[i];
+    let p2 = polygonCoords[(i + 1) % polygonCoords.length]; // next point (loop)
+
+    // Titik kontrol = midpoint supaya lembut
+    let control = [
+        (p1[0] + p2[0]) / 2,
+        (p1[1] + p2[1]) / 2
+    ];
+
+    curvePoints.push(
+        'M', p1,
+        'Q', control, p2
+    );
+}
+
+// Gambar polygon curve
+L.curve(curvePoints, {
+    color: "blue",
+    weight: 3,
+    fill: true,
+    fillColor: "lightblue",
+    fillOpacity: 0.35
+}).addTo(map);
+
+</script>
+
+</body>
+</html>

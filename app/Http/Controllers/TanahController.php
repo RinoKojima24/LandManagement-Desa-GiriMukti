@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PetaTanah;
+use App\Models\SuratPermohonan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -244,10 +246,194 @@ public function data(Request $request){
         });
     }
 
+    $data = PetaTanah::orderBy('created_at', 'DESC');
+
     $data = $data->get(); // Perbaikan: assign hasil get() ke variable
 
     return view('web.data_peta', compact('data'));
 }
+
+    public function create(){
+        $data['permohonans'] = DB::table('surat_permohonan')
+                            ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+                            ->orderBy('surat_permohonan.created_at', 'DESC')->get();
+        // dd($data['permohonans'][0]->id_permohonan);
+        return view('web.peta.tambah', $data);
+    }
+
+    public function edit($id){
+        $data['permohonans'] = DB::table('surat_permohonan')
+                            ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+                            ->orderBy('surat_permohonan.created_at', 'DESC')->get();
+        $data['peta'] = PetaTanah::find($id);
+        // dd($data['permohonans'][0]->id_permohonan);
+        return view('web.peta.edit', $data);
+    }
+
+    public function detail($id) {
+
+        $data['peta'] = PetaTanah::find($id);
+        return view('web.peta.detail', $data);
+    }
+
+    public function store(Request $request) {
+        try {
+            // Validasi request
+            $request->validate([
+                'surat_permohonan_id' => 'required',
+                'tanggal_pengukuran' => 'required',
+                'peruntukan' => 'required',
+                'status' => 'required',
+                'panjang' => 'required|numeric',
+                'lebar' => 'required|numeric',
+                'luas' => 'required|numeric',
+                'titik_kordinat' => 'required',
+                'titik_kordinat_polygon' => 'required',
+                'foto_peta' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+                'keperluan' => 'nullable|string|max:255',
+            ]);
+
+            $jenis_surat = [
+                'skt' => 'SKT',
+                'sporadik' => 'SPPF',
+                'waris' => 'SKWT',
+                'hibah' => 'SHT',
+                'jual_beli' => 'SJBT',
+                'tidak_sengketa' => 'SKTS',
+                'permohonan' => 'SPP',
+                'lokasi' => 'SKLT',
+            ];
+
+            $permohonan = DB::table('surat_permohonan')->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+                          ->where('surat_permohonan.id_permohonan', $request->surat_permohonan_id)->orderBy('surat_permohonan.created_at', 'DESC')->first();
+            // dd($permohonan);
+            $path = $request->path();
+
+            // Handle upload Gambar Surat
+            if ($request->hasFile('foto_peta')) {
+                // dd("LALA");
+                $gambarFile = $request->file('foto_peta');
+                $gambarPath = $gambarFile->store('foto_peta', 'public');
+            }
+
+
+            PetaTanah::create([
+                'nomor_bidang' => $jenis_surat[$permohonan->kode_jenis]."/".str_pad($permohonan->id_permohonan, 3, '0', STR_PAD_LEFT)."/".date('Y'),
+                'surat_permohonan_id' => $request->surat_permohonan_id,
+                'status'=> $request->status,
+                'panjang' => $request->panjang,
+                'lebar' => $request->lebar,
+                'luas' => $request->luas,
+                'peruntukan'=> $request->peruntukan,
+                'titik_kordinat'=> $request->titik_kordinat,
+                'titik_kordinat_polygon'=> $request->titik_kordinat_polygon,
+                // 'titik_kordinat_2'=> $request->titik_kordinat_2,
+                // 'titik_kordinat_3'=> $request->titik_kordinat_3,
+                // 'titik_kordinat_4'=> $request->titik_kordinat_4,
+
+                'tanggal_pengukuran'=> $request->tanggal_pengukuran,
+                'foto_peta'=> $gambarPath,
+            ]);
+            // dd("ASD");
+
+
+
+            DB::commit();
+
+            // return redirect()->back()->with('success', "Data Tanah telah ditambahkan!");
+            return redirect()->to('tanah')->with('success', "Data Tanah telah ditambahkan!");
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function update(Request $request, $id) {
+        // dd($id);
+        try {
+            // Validasi request
+            $request->validate([
+                'surat_permohonan_id' => 'required',
+                'tanggal_pengukuran' => 'required',
+                'peruntukan' => 'required',
+                'status' => 'required',
+                'panjang' => 'required|numeric',
+                'lebar' => 'required|numeric',
+                'luas' => 'required|numeric',
+                'titik_kordinat' => 'required',
+                'titik_kordinat_1' => 'required',
+                'titik_kordinat_2' => 'required',
+                'titik_kordinat_3' => 'required',
+                'titik_kordinat_4' => 'required',
+                'foto_peta' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+                'keperluan' => 'nullable|string|max:255',
+            ]);
+
+            $jenis_surat = [
+                'skt' => 'SKT',
+                'sporadik' => 'SPPF',
+                'waris' => 'SKWT',
+                'hibah' => 'SHT',
+                'jual_beli' => 'SJBT',
+                'tidak_sengketa' => 'SKTS',
+                'permohonan' => 'SPP',
+                'lokasi' => 'SKLT',
+            ];
+
+            $permohonan = DB::table('surat_permohonan')->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+                          ->where('surat_permohonan.id_permohonan', $request->surat_permohonan_id)->orderBy('surat_permohonan.created_at', 'DESC')->first();
+            // dd($permohonan);
+            $path = $request->path();
+
+            // Handle upload Gambar Surat
+
+
+
+            PetaTanah::where('id',$id)->update([
+                'nomor_bidang' => $jenis_surat[$permohonan->kode_jenis]."/".str_pad($permohonan->id_permohonan, 3, '0', STR_PAD_LEFT)."/".date('Y'),
+                'surat_permohonan_id' => $request->surat_permohonan_id,
+                'status'=> $request->status,
+                'panjang' => $request->panjang,
+                'lebar' => $request->lebar,
+                'luas' => $request->luas,
+                'peruntukan'=> $request->peruntukan,
+                'titik_kordinat'=> $request->titik_kordinat,
+                'titik_kordinat_1'=> $request->titik_kordinat_1,
+                'titik_kordinat_2'=> $request->titik_kordinat_2,
+                'titik_kordinat_3'=> $request->titik_kordinat_3,
+                'titik_kordinat_4'=> $request->titik_kordinat_4,
+
+                'tanggal_pengukuran'=> $request->tanggal_pengukuran,
+                // 'foto_peta'=> $gambarPath,
+            ]);
+
+            // dd("asdas");
+
+
+            if ($request->hasFile('foto_peta')) {
+                // dd("LALA");
+                $gambarFile = $request->file('foto_peta');
+                $gambarPath = $gambarFile->store('foto_peta', 'public');
+                PetaTanah::where('id',$id)->update([
+                    'foto_peta'=> $gambarPath,
+                ]);
+            }
+
+            // dd("ASD");
+
+
+
+            DB::commit();
+
+            return redirect()->to('tanah/'.$id.'/show')->with('success', "Data Tanah telah diubah!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
+    }
 
     /**
      * Get data for search/autocomplete
@@ -275,5 +461,12 @@ public function data(Request $request){
             ->get();
 
         return response()->json($data);
+    }
+
+    public function destroy($id) {
+        $peta = PetaTanah::find($id);
+        $peta->delete();
+        return redirect()->to('tanah')->with('success', "Data Tanah telah dihapus!");
+
     }
 }

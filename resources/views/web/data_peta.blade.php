@@ -4,11 +4,16 @@
 <div class="container-fluid px-3 py-4" style="background-color: #f5f5f5; min-height: 100vh;">
     <!-- Header -->
     <div class="mb-4">
-        <div class="d-flex align-items-center mb-3">
-            <a href="{{ route('home') }}" class="text-decoration-none text-dark me-3">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h5 class="mb-0 fw-bold">Data Peta Tanah</h5>
+        <div class="d-flex justify-content-between">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ route('home') }}" class="text-decoration-none text-dark me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h5 class="mb-0 fw-bold">Data Peta Tanah</h5>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ url('tanah/create') }}" class="btn btn-success">Tambah Data</a>
+            </div>
         </div>
         <p class="text-muted small mb-3">Gunakan pencarian untuk mempermudah melihat data</p>
 
@@ -30,59 +35,54 @@
     <!-- Cards Container -->
     <div class="row g-3">
         @forelse($data as $item)
+        {{-- @dd($item->foto_peta) --}}
         <div class="col-12 col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <!-- Image Placeholder -->
-              <div class="card-img-top bg-secondary" style="height: 120px; position: relative;">
-                    <img src="{{ $tanah->foto ?? asset('images/tanah-placeholder.jpg') }}"
-                        class="w-100 h-100 object-fit-cover"
-                        alt="Foto Tanah"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-
-                    <div class="fallback-overlay position-absolute top-0 start-0 w-100 h-100 bg-secondary d-flex align-items-center justify-content-center"
-                        style="display: none;">
-                        <i class="fas fa-image text-white fa-2x"></i>
-                    </div>
-                </div>
-
+            <div class="card">
+                <img src="{{ url('storage/'.$item->foto_peta) }}" alt="...">
                 <div class="card-body">
-                    <!-- Title -->
-                    <h6 class="card-title fw-bold mb-2">{{ $item->nama_jenis ?? 'Tidak Ada Nama' }}</h6>
+                    <div class="d-flex justify-content-between">
+                        <div class="btn btn-warning h-8" style="font-size: 12px;">Nomor Bidang</div>
+                        <div class="mb-3">
+                            <span class="float-end" style="font-size: 14px;">{{ $item->nomor_bidang }}</span><br>
+                            <span class="float-end" style="font-size: 14px;"><b>{{ $item->SuratPermohonan->nama_lengkap }}</b></span>
 
-                    <!-- Date -->
-                    <p class="text-muted small mb-3">
-                        <i class="far fa-calendar me-1"></i>
-                        {{ date('d/m/Y') }}
-                    </p>
-
-                    <!-- Details Grid -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-4">
-                            <small class="text-muted d-block">Panjang</small>
-                            <small class="fw-semibold">{{ $item->panjang ?? '-' }} m</small>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted d-block">Lebar</small>
-                            <small class="fw-semibold">{{ $item->luas_tanah ?? '-' }} m²</small>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted d-block">Penerbit</small>
-                            <small class="fw-semibold">{{ $item->penerbit ?? 'Kementan' }}</small>
                         </div>
                     </div>
-
-                    <!-- NIB Badge -->
-                    <div class="mb-3">
-                        <span class="badge bg-light text-dark border">
-                            NIB: {{ $item->nib ?? '-' }}
-                        </span>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <label for="" style="font-size: 14px;">Titik Kordinat</label><br>
+                            <span style="font-size: 12px;">{{ $item->titik_kordinat }}</span>
+                        </div>
+                    </div><br>
+                    <hr>
+                    <br>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <label for="" style="font-size: 14px;">Peruntukan</label><br>
+                            <span style="font-size: 13px;">{{ $item->peruntukan }}</span>
+                        </div>
+                        <div>
+                            <label for="" style="font-size: 14px;">Status</label><br>
+                            <span style="font-size: 13px;">{{ $item->status }}</span>
+                        </div>
                     </div>
-
-                    <!-- Action Button -->
-                    <a href="{{ route('bidang-tanah.show', $item->id_bidang_tanah) }}"
-                       class="btn btn-success btn-sm w-100">
-                        Lihat Detail
-                    </a>
+                    <br>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <label for="" style="font-size: 14px;">Panjang</label><br>
+                            <span style="font-size: 13px;">{{ $item->panjang }} m</span>
+                        </div>
+                        <div>
+                            <label for="" style="font-size: 14px;">Lebar</label><br>
+                            <span style="font-size: 13px;">{{ $item->lebar }} m</span>
+                        </div>
+                        <div>
+                            <label for="" style="font-size: 14px;">Luas</label><br>
+                            <span style="font-size: 13px;">{{ $item->luas }} m<sup>2</sup></span>
+                        </div>
+                    </div>
+                    <br>
+                    <a href="{{ url('tanah/'.$item->id.'/show') }}" class="btn btn-success w-full">Lihat Data Peta</a>
                 </div>
             </div>
         </div>

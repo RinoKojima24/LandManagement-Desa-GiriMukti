@@ -1,12 +1,23 @@
 @extends('layouts.mobile')
 
 @section('content')
+<style>
+.desktop-only {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: block;
+    }
+}
+</style>
 <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <div class="bg-white shadow-sm sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 py-4">
             <div class="flex items-center space-x-3">
-                <a href="{{ url()->previous() }}" class="text-gray-600 hover:text-gray-900">
+                <a href="{{ url('home') }}" class="text-gray-600 hover:text-gray-900">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -96,6 +107,7 @@
                 <!-- Date Range -->
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div>
+                        <input type="hidden" name="tipe_surat" value="{{ @$_GET['tipe_surat'] ?? 0 }}">
                         <label class="block text-xs text-gray-600 mb-1">Dari Tanggal</label>
                         <input type="date"
                                name="tanggal_dari"
@@ -127,10 +139,22 @@
 
         <!-- Results Section Header -->
         <div class="mb-4">
-            <h2 class="text-lg font-semibold text-gray-900">Berkas Terdaftar</h2>
-            <p class="text-sm text-gray-500 mt-1">
-                Menampilkan {{ $surat_keterangan->count() + $surat_permohonan->count() }} berkas
-            </p>
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Berkas Terdaftar</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Menampilkan {{  count($surat_keterangan) + count($surat_permohonan) }} berkas
+                    </p>
+                </div>
+                <div>
+                    <form action="" method="get" id="ganti_tipe_surat">
+                        <select name="tipe_surat" id="tipe_surat" class="form-control">
+                            <option value="0" {{ @$_GET['tipe_surat'] == "0" ? 'selected' : '' }}>Pengajuan Surat Tanah</option>
+                            <option value="1" {{ @$_GET['tipe_surat'] == "1" ? 'selected' : '' }}>Pengajuan Surat Keterangan</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Loading Placeholder (Show when filtering) -->
@@ -148,7 +172,7 @@
 
         <!-- Results List -->
         <div id="resultsList">
-            @if($surat_keterangan->isEmpty() && $surat_permohonan->isEmpty())
+            @if(  count($surat_keterangan) == 0 &&  count($surat_permohonan)  == 0)
                 <!-- Empty State -->
                 <div class="bg-white rounded-lg p-12 text-center shadow-sm">
                     <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,93 +182,96 @@
                     <p class="text-gray-500">Coba ubah filter atau kata kunci pencarian Anda</p>
                 </div>
             @else
-                <!-- Surat Keterangan Cards -->
-                @foreach($surat_keterangan as $surat)
-                <div class="bg-white rounded-lg shadow-sm mb-3 overflow-hidden hover:shadow-md transition">
-                    <div class="p-4">
-                        <!-- Header -->
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex-1">
-                                <h3 class="font-semibold text-gray-900 mb-1">{{ $surat->nama_lengkap }}</h3>
-                                <p class="text-sm text-gray-600">{{ $surat->jenis_surat_lengkap }}</p>
+                <div class="desktop-only">
+                    <!-- Surat Keterangan Cards -->
+                    @foreach($surat_keterangan as $surat)
+                    <div class="bg-white rounded-lg shadow-sm mb-3 overflow-hidden hover:shadow-md transition">
+                        <div class="p-4">
+                            <!-- Header -->
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-1">{{ $surat->nama_lengkap }}</h3>
+                                    <p class="text-sm text-gray-600">{{ $surat->jenis_surat_lengkap }}</p>
+                                </div>
+                                <span class="px-3 py-1 text-xs font-medium rounded-full
+                                    @if($surat->status == 'pending') bg-yellow-100 text-yellow-700
+                                    @elseif($surat->status == 'verifikasi') bg-green-100 text-green-700
+                                    @else bg-red-100 text-red-700
+                                    @endif">
+                                    {{ ucfirst($surat->status) }}
+                                </span>
                             </div>
-                            <span class="px-3 py-1 text-xs font-medium rounded-full
-                                @if($surat->status == 'pending') bg-yellow-100 text-yellow-700
-                                @elseif($surat->status == 'verifikasi') bg-green-100 text-green-700
-                                @else bg-red-100 text-red-700
-                                @endif">
-                                {{ ucfirst($surat->status) }}
-                            </span>
-                        </div>
 
-                        <!-- Details -->
-                        <div class="space-y-2 mb-3">
-                            <div class="flex items-center text-sm">
-                                <span class="text-gray-500 w-28">Jenis Berkas:</span>
-                                <span class="text-gray-900 font-medium">Surat {{ ucwords(str_replace('_', ' ', 'keterangan')) }}</span>
+                            <!-- Details -->
+                            <div class="space-y-2 mb-3">
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-28">Jenis Berkas:</span>
+                                    <span class="text-gray-900 font-medium">Surat {{ ucwords(str_replace('_', ' ', 'keterangan')) }}</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-28">Tanggal Input:</span>
+                                    <span class="text-gray-900">{{ \Carbon\Carbon::parse($surat->created_at)->format('d/m/Y') }}</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-28">No Surat:</span>
+                                    <span class="text-gray-900">{{ $surat->no_surat ?? $surat->id_permohonan }}</span>
+                                </div>
                             </div>
-                            <div class="flex items-center text-sm">
-                                <span class="text-gray-500 w-28">Tanggal Input:</span>
-                                <span class="text-gray-900">{{ \Carbon\Carbon::parse($surat->created_at)->format('d/m/Y') }}</span>
-                            </div>
-                            <div class="flex items-center text-sm">
-                                <span class="text-gray-500 w-28">No Surat:</span>
-                                <span class="text-gray-900">{{ $surat->no_surat ?? $surat->id_permohonan }}</span>
-                            </div>
-                        </div>
 
-                        <!-- Action Button -->
-                        <a href=""
-                           class="block w-full text-center bg-teal-600 text-white py-2 rounded-lg font-medium hover:bg-teal-700 transition">
-                            Lihat Detail
-                        </a>
+                            <!-- Action Button -->
+                            <a href="{{ url('berkas/'.$surat->id_permohonan.'?tipe_surat='.$_GET['tipe_surat']) }}"
+                            class="block w-full text-center bg-teal-600 text-white py-2 rounded-lg font-medium hover:bg-teal-700 transition">
+                                Lihat Detail
+                            </a>
+                        </div>
                     </div>
-                </div>
-                @endforeach
+                    @endforeach
 
-                <!-- Surat Permohonan Cards -->
-                @foreach($surat_permohonan as $surat)
-                <div class="bg-white rounded-lg shadow-sm mb-3 overflow-hidden hover:shadow-md transition">
-                    <div class="p-4">
-                        <!-- Header -->
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex-1">
-                                <h3 class="font-semibold text-gray-900 mb-1">{{ $surat->nama_lengkap }}</h3>
-                                <p class="text-sm text-gray-600">{{ $surat->jenis_surat_lengkap }}</p>
+                    <!-- Surat Permohonan Cards -->
+                    @foreach($surat_permohonan as $surat)
+                    <div class="bg-white rounded-lg shadow-sm mb-3 overflow-hidden hover:shadow-md transition">
+                        <div class="p-4">
+                            <!-- Header -->
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-1">{{ $surat->nama_lengkap }}</h3>
+                                    <p class="text-sm text-gray-600">{{ $surat->jenis_surat_lengkap }}</p>
+                                </div>
+                                <span class="px-3 py-1 text-xs font-medium rounded-full
+                                    @if($surat->status == 'pending') bg-yellow-100 text-yellow-700
+                                    @elseif($surat->status == 'verifikasi') bg-green-100 text-green-700
+                                    @else bg-red-100 text-red-700
+                                    @endif">
+                                    {{ ucfirst($surat->status) }}
+                                </span>
                             </div>
-                            <span class="px-3 py-1 text-xs font-medium rounded-full
-                                @if($surat->status == 'pending') bg-yellow-100 text-yellow-700
-                                @elseif($surat->status == 'verifikasi') bg-green-100 text-green-700
-                                @else bg-red-100 text-red-700
-                                @endif">
-                                {{ ucfirst($surat->status) }}
-                            </span>
+
+                            <!-- Details -->
+                            <div class="space-y-2 mb-3">
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-28">Jenis Berkas:</span>
+                                    <span class="text-gray-900 font-medium">Surat {{ ucwords(str_replace('_', ' ', 'permohonan')) }}</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-28">Tanggal Input:</span>
+                                    <span class="text-gray-900">{{ \Carbon\Carbon::parse($surat->created_at)->format('d/m/Y') }}</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <span class="text-gray-500 w-28">No Surat:</span>
+                                    <span class="text-gray-900">{{ $surat->no_surat ?? $surat->id_permohonan }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Button -->
+
+                            <a href="{{ url('berkas/'.$surat->id_permohonan.'?tipe_surat='.$_GET['tipe_surat']) }}"
+                            class="block w-full text-center bg-teal-600 text-white py-2 rounded-lg font-medium hover:bg-teal-700 transition">
+                                Lihat Detail
+                            </a>
                         </div>
-
-                        <!-- Details -->
-                        <div class="space-y-2 mb-3">
-                            <div class="flex items-center text-sm">
-                                <span class="text-gray-500 w-28">Jenis Berkas:</span>
-                                <span class="text-gray-900 font-medium">Surat {{ ucwords(str_replace('_', ' ', 'permohonan')) }}</span>
-                            </div>
-                            <div class="flex items-center text-sm">
-                                <span class="text-gray-500 w-28">Tanggal Input:</span>
-                                <span class="text-gray-900">{{ \Carbon\Carbon::parse($surat->created_at)->format('d/m/Y') }}</span>
-                            </div>
-                            <div class="flex items-center text-sm">
-                                <span class="text-gray-500 w-28">No Surat:</span>
-                                <span class="text-gray-900">{{ $surat->no_surat ?? $surat->id_permohonan }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Action Button -->
-                        <a href=""
-                           class="block w-full text-center bg-teal-600 text-white py-2 rounded-lg font-medium hover:bg-teal-700 transition">
-                            Lihat Detail
-                        </a>
                     </div>
+                    @endforeach
                 </div>
-                @endforeach
             @endif
         </div>
 
@@ -289,7 +316,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a href=""
+                            <a href="{{ url('berkas/'.$surat->id_permohonan.'?tipe_surat='.$_GET['tipe_surat']) }}"
                                class="text-teal-600 hover:text-teal-900 font-medium">
                                 Lihat Detail
                             </a>
@@ -327,6 +354,12 @@ document.getElementById('filterForm').addEventListener('submit', function() {
     document.getElementById('loadingPlaceholder').classList.remove('hidden');
     document.getElementById('resultsList').classList.add('hidden');
 });
+
+@section('jquery')
+    $('#tipe_surat').on('change', function() {
+        $('#ganti_tipe_surat').submit();
+    });
+@endsection
 </script>
 
 <style>

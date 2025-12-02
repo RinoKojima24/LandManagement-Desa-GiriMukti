@@ -523,6 +523,8 @@
                     'overflow-y': 'auto'
                 });
             }
+
+            @yield('jquery')
         });
 
         // Enhanced pushmenu for mobile

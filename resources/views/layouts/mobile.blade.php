@@ -404,6 +404,10 @@
             if (installBtn) installBtn.style.display = 'none';
             if (installBtnMobile) installBtnMobile.style.display = 'none';
         }
+
+        $(document).ready(function() {
+            @yield('jquery')
+        });
     </script>
 
     @stack('scripts')

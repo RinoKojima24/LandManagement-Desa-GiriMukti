@@ -1,5 +1,7 @@
 <?php
 
+use App\Helpers\NotificationHelper;
+use App\Helpers\WaHelpers;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AntreanController;
@@ -13,13 +15,182 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PermohonanSuratController;
 use Database\Seeders\NontificationFactory;
+use Illuminate\Http\Request;
+
 
 // ===========================
 // GUEST (Login & Register)
 // ===========================
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn() => view('Auth.login'))->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login_post');
+
+
+    Route::get('/', function () {
+        return view('guest.home');
+    })->name('guest.home');
+
+    Route::get('/pengajuan_surat', function() {
+        // Kirim variabel ke view
+        return view('guest.pengajuan_surat');
+    });
+
+    Route::get('/pengajuan_keterangan', function() {
+        return view('guest.pengajuan_keterangan');
+    });
+
+    Route::get('/test', function() {
+        $pesan = "Ayam\nsapi\nkambing";
+        WaHelpers::sendWa('081212379429', $pesan);
+        // dd("Ziteru");
+    });
+
+    Route::post('/pengajuan', function(Request $request) {
+        try {
+            // Validasi request
+            $request->validate([
+                'nik' => 'required|string|max:16',
+                'namaLengkap' => 'required|string|max:100',
+                'jenisKelamin' => 'required|in:L,P',
+                'alamat' => 'required|string|max:244',
+                'jenis_surat' => 'required|string',
+                'ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                'dokumen_pendukung' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                'keperluan' => 'nullable|string|max:255',
+                'no_wa' => 'required',
+            ]);
+
+            $path = $request->path();
+
+            if($request->type == "keterangan") {
+                $jenisSuratType = 'keterangan';
+            } else {
+                $jenisSuratType = 'permohonan'; // default
+
+            }
+
+
+                // if ($path === 'permohonan/keterangan/post') {
+                // }
+
+            // Data yang sama untuk kedua tabel
+            $commonData = [
+                'nik' => $request->nik,
+                'nama_lengkap' => $request->namaLengkap,
+                'jenis_kelamin' => $request->jenisKelamin,
+                'alamat' => $request->alamat,
+                'no_wa' => $request->no_wa,
+                'created_at' => now(),
+            ];
+
+
+            // Handle upload file KTP
+            if ($request->hasFile('ktp')) {
+                $ktpFile = $request->file('ktp');
+                $ktpPath = $ktpFile->store('ktp', 'public');
+                $commonData['ktp'] = $ktpPath;
+            }
+
+            // Handle upload file Dokumen Pendukung
+            if ($request->hasFile('dokumen_pendukung')) {
+                $dokumenFile = $request->file('dokumen_pendukung');
+                $dokumenPath = $dokumenFile->store('dokumen_pendukung', 'public');
+                $commonData['dokumen_pendukung'] = $dokumenPath;
+            }
+
+            // Handle upload Gambar Surat
+            if ($request->hasFile('gambar_surat')) {
+                $gambarFile = $request->file('gambar_surat');
+                $gambarPath = $gambarFile->store('gambar_surat', 'public');
+                $commonData['gambar_surat'] = $gambarPath;
+            }
+
+
+
+            // Tentukan jenis surat berdasarkan input
+            $jenisSuratCode = $request->jenis_surat; // 'skt' atau 'spm'
+
+            // Query ke tabel jenis_surat untuk mendapatkan data jenis surat
+            $jenisSurat = DB::table('jenis_surat')
+                ->where('kode_jenis', $jenisSuratCode)
+                ->first();
+
+            // dd($);
+
+            // Jika jenis surat tidak ditemukan, buat data baru
+            if (!$jenisSurat) {
+                $idJenisSurat = DB::table('jenis_surat')->insertGetId([
+                    'jenis_surat' => $jenisSuratType, // ambil berdasarkan jenis route
+                    'name' => $jenisSuratCode,
+                    'kode_jenis' => $jenisSuratCode,
+                    'created_at' => now(),
+                ]);
+
+                // Ambil data yang baru dibuat
+                $jenisSurat = DB::table('jenis_surat')
+                    ->where('id_jenis_surat', $idJenisSurat)
+                    ->first();
+            }
+
+            // Bedakan logika berdasarkan jenis_surat dari tabel jenis_surat
+            if ($jenisSuratType === 'keterangan') {
+                // Logika untuk surat keterangan
+                $tipe = 'Surat Keterangan';
+
+                // Tambahkan field khusus surat keterangan
+                $commonData['keperluan'] = $request->keperluan ?? '-';
+                $commonData['id_jenis_surat'] = $jenisSurat->id_jenis_surat;
+
+                // Simpan ke tabel surat_keterangan
+                $idPermohonan = DB::table('surat_keterangan')->insertGetId([
+                    'nik' => $commonData['nik'],
+                    'nama_lengkap' => $commonData['nama_lengkap'],
+                    'jenis_kelamin' => $commonData['jenis_kelamin'],
+                    'alamat' => $commonData['alamat'],
+                    'keperluan' => $commonData['keperluan'] ?? '-',
+                    'id_jenis_surat' => $commonData['id_jenis_surat'],
+                    'no_wa' => $commonData['no_wa'],
+                    'ktp' => $commonData['ktp'],
+                    'dokumen_pendukung' => $commonData['dokumen_pendukung'],
+                    'created_at' => now(),
+
+                ]);
+
+
+                $pesan = "Pengajuan Surat Keterangan : \nNIK : {$commonData['nik']}\nNama Lengkap : {$commonData['nama_lengkap']}\nJenis Surat : {$jenisSurat->name}\nKeperluan : {$commonData['keperluan']}\nNomor Urut : {$idPermohonan}";
+                WaHelpers::sendWa($commonData['no_wa'], $pesan);
+
+                // $jenisSurat
+
+
+                // NotificationHelper::newLetterRequest(auth()->id(),$idPermohonan,'keterangan');
+
+            } elseif ($jenisSuratType === 'permohonan') {
+                // Logika untuk surat permohonan
+                $tipe = 'Surat Permohonan';
+                $commonData['id_jenis_surat'] = $jenisSurat->id_jenis_surat;
+                // Simpan ke tabel surat_permohonan
+                $idPermohonan = DB::table('surat_permohonan')->insertGetId($commonData);
+
+
+                $pesan = "Pengajuan Surat Tanah : \nNIK : {$commonData['nik']}\nNama Lengkap : {$commonData['nama_lengkap']}\nJenis Surat : {$jenisSurat->name}\nNomor Urut : {$idPermohonan}";
+                WaHelpers::sendWa($commonData['no_wa'], $pesan);
+                // NotificationHelper::newLetterRequest(auth()->id(),$idPermohonan,'surat tanah');
+
+            } else {
+                throw new \Exception('Jenis surat tidak valid');
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', "{$tipe} berhasil dikirim dengan ID: {$idPermohonan}");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
+    });
 });
     Route::get('/offline', function () {
     return view('offline');
@@ -33,7 +204,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name
 Route::middleware(['auth'])->group(function () {
 
     // ---------- HOME ----------
-        Route::get('/', function () {
+        Route::get('/home', function () {
             $posts = DB::table('posts')
                 ->where('status', 'published')
                 ->orderBy('created_at', 'desc')
@@ -113,6 +284,16 @@ Route::middleware(['auth'])->group(function () {
     // ---------- TANAH ----------
     Route::controller(TanahController::class)->group(function () {
         Route::get('/tanah', 'data')->name('data.peta');
+        Route::post('/tanah', 'store')->name('data.peta.store');
+        Route::get('/tanah/{id}/show', 'detail')->name('data.peta.detail');
+        Route::get('/tanah/{id}/edit', 'edit')->name('data.peta.edit');
+
+        Route::put('/tanah/{id}', 'update')->name('data.peta.update');
+        Route::delete('/tanah/{id}', 'destroy')->name('data.peta.destroy');
+
+
+
+        Route::get('/tanah/create', 'create')->name('data.peta.tambah');
         Route::get('/data-tanah/titik', 'data_titik_tanah')->name('data_titik_tanah');
         Route::get('/data-tanah/{id}', 'show')->name('bidang-tanah.show');
     });
@@ -120,6 +301,10 @@ Route::middleware(['auth'])->group(function () {
     // ---------- PENGAJUAN SURAT ----------
     Route::controller(PengajuanSuratController::class)->group(function () {
         Route::get('/berkas', 'index')->name('pengajuanSurat.index');
+        Route::get('/berkas/{id}', 'edit')->name('pengajuanSurat.edit');
+        Route::put('/berkas/{id}', 'update')->name('pengajuanSurat.update');
+
+
         Route::get('/permohonan', 'create')->name('permohonan_form');
         Route::get('/permohonan/keterangan', 'create')->name('keterangan_form');
         Route::post('/permohonan/post', 'store')->name('permohonan_post');

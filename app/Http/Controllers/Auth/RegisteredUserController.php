@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
             'is_active' => $request->has('is_active') ? true : false,
             'created_at' => now(),
             'updated_at' => now(),
-        ]);p
+        ]);
 
         event(new Registered($user));
 
