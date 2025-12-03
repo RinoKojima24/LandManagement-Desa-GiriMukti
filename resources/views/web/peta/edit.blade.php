@@ -65,6 +65,54 @@ input[type="file"] {
 }
 
 </style>
+
+<style>
+/* Wrapper */
+.tabs {
+    width: 100%;
+    /* max-width: 600px; */
+    margin: 40px auto;
+    font-family: Arial, sans-serif;
+}
+
+/* Hidden radio */
+.tabs input[type="radio"] {
+    display: none;
+}
+
+/* Label tab */
+.tabs .tab_label {
+    padding: 12px 20px;
+    display: inline-block;
+    cursor: pointer;
+    background: #e0e0e0;
+    border-radius: 8px 8px 0 0;
+    margin-right: 5px;
+    transition: 0.3s;
+}
+
+/* Saat tab aktif */
+.tabs input:checked + label {
+    background: #4CAF50;
+    color: white;
+}
+
+/* Content */
+.tab-content {
+    border: 1px solid #ccc;
+    padding: 20px;
+    display: none;
+    border-radius: 0 8px 8px 8px;
+    background: #fafafa;
+}
+
+/* Tampilkan konten sesuai tab */
+#tab1:checked ~ #content1,
+#tab2:checked ~ #content2 {
+    display: block;
+}
+</style>
+
 <div class="container-fluid px-3 py-4" style="background-color: #f5f5f5; min-height: 100vh;">
     <!-- Header -->
     <div class="mb-4">
@@ -90,106 +138,129 @@ input[type="file"] {
         <form action="{{ url('tanah/'.$peta->id) }}" method="POST" class="mb-3" enctype="multipart/form-data">
             @csrf
             @method('PUT')
-            <div class="row">
-                <div class="form-group col-sm-12">
-                    <label for="">Pilih Surat Permohonan<span class="required">*</span></label>
-                    <select name="surat_permohonan_id" id="surat_permohonan_id" class="form-control">
-                        @php
-                            $jenis_surat = [
-                                'skt' => 'Surat Keterangan Tanah (SKT)',
-                                'sporadik' => 'Surat Pernyataan Penguasaan Fisik (Sporadik)',
-                                'waris' => 'Surat Keterangan Waris Tanah',
-                                'hibah' => 'Surat Hibah Tanah',
-                                'jual_beli' => 'Surat Jual Beli Tanah',
-                                'tidak_sengketa' => 'Surat Keterangan Tidak Sengketa',
-                                'permohonan' => 'Surat Permohonan Penggarapan / Pemanfaatan Tanah Desa',
-                                'lokasi' => 'Surat Keterangan Lokasi Tanah',
-                            ]
-                        @endphp
-                        @foreach ($permohonans as $a)
-                            <option value="{{ $a->id_permohonan }}" {{ old('surat_permohonan_id', $peta->surat_permohonan_id) == $a->id_permohonan ? 'selected' : '' }}>{{ $a->id_permohonan }} | {{ $a->nama_lengkap }} | {{ $jenis_surat[$a->kode_jenis] ?? "Tidak ada Permohonan" }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group col-sm-12">
-                    <label for="">Tanggal Pengukuran<span class="required">*</span></label>
-                    <input type="date" name="tanggal_pengukuran" placeholder="Tanggal Pengukuran" value="{{ old('tanggal_pengukuran', $peta->tanggal_pengukuran) }}" class="form-control" id="tanggal_pengukuran">
-                </div>
-                <div class="form-group col-sm-12">
-                    <label for="">Peruntukan<span class="required">*</span></label>
-                    <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan', $peta->peruntukan) }}</textarea>
-                </div>
-                <div class="form-group col-sm-12 col-md-3">
-                    <label for="">Status<span class="required">*</span></label>
-                    <input type="text" name="status" placeholder="Status" class="form-control" value="{{ old('status', $peta->status) }}" id="status">
-                </div>
-                <div class="form-group col-sm-12 col-md-3">
-                    <label for="">Panjang<span class="required">*</span></label>
-                    <input type="number" name="panjang" placeholder="Panjang" class="form-control" value="{{ old('panjang', $peta->panjang) ?? 0 }}" id="panjang">
-                </div>
-                <div class="form-group col-sm-12 col-md-3">
-                    <label for="">Lebar<span class="required">*</span></label>
-                    <input type="number" name="lebar" placeholder="Lebar" class="form-control" value="{{ old('lebar', $peta->lebar) ?? 0 }}" id="lebar">
-                </div>
-                <div class="form-group col-sm-12 col-md-3">
-                    <label for="">Luas<span class="required">*</span></label>
-                    <input type="number" name="luas" placeholder="Luas" readonly class="form-control" value="{{ old('luas', $peta->luas) ?? 0 }}" id="luas">
-                </div>
+            <div class="tabs">
 
-                {{-- <div class="form-group col-sm-12 col-md-6">
-                    <label for="">Titik Kordinat 1<span class="required">*</span></label>
-                    <input type="text" name="titik_kordinat_1" value="{{ old('titik_kordinat_1', $peta->titik_kordinat_1) }}" placeholder="Titik Kordinat 1 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_1">
-                </div>
-                <div class="form-group col-sm-12 col-md-6">
-                    <label for="">Titik Kordinat 2<span class="required">*</span></label>
-                    <input type="text" name="titik_kordinat_2" value="{{ old('titik_kordinat_2', $peta->titik_kordinat_2) }}" placeholder="Titik Kordinat 2 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_2">
-                </div>
-                <div class="form-group col-sm-12 col-md-6">
-                    <label for="">Titik Kordinat 3<span class="required">*</span></label>
-                    <input type="text" name="titik_kordinat_3" value="{{ old('titik_kordinat_3', $peta->titik_kordinat_3) }}" placeholder="Titik Kordinat 3 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_3">
-                </div>
-                <div class="form-group col-sm-12 col-md-6">
-                    <label for="">Titik Kordinat 4<span class="required">*</span></label>
-                    <input type="text" name="titik_kordinat_4" value="{{ old('titik_kordinat_4', $peta->titik_kordinat_4) }}" placeholder="Titik Kordinat 4 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_4">
-                </div> --}}
-                <div class="form-group col-sm-12 col-md-6">
+                <!-- TAB 1 -->
+                <input type="radio" id="tab1" name="tab" checked>
+                <label for="tab1" class="tab_label">Input Kordinat Tanah</label>
 
-                    <div class="upload-section">
-                        <div class="upload-label">Foto Peta<span class="required">*</span></div>
+                <!-- TAB 2 -->
+                <input type="radio" id="tab2" name="tab">
+                <label for="tab2" class="tab_label">Input Data Tanah</label>
 
-                        <div class="upload-group" id="fotoPetaGroup">
-                            <div class="upload-input" id="FotoPetaFileName">Foto Peta (JPG, PNG Maks 2MB)</div>
-                            <label for="ktpUpload" class="upload-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                                </svg>
-                            </label>
-                            <input
-                                type="file"
-                                id="foto_peta"
-                                name="foto_peta"
-                                accept="image/jpeg,image/jpg,image/png,.pdf"
-                                {{-- required --}}
-                            >
+                <!-- CONTENT 1 -->
+                <div id="content1" class="tab-content">
+
+                    <div class="capek">
+                        <div class="form-group">
+                            <div id="map"></div>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="">Titik Kordinat Utama<span class="required">*</span></label>
+                            <input type="text" name="titik_kordinat" value="{{ old('titik_kordinat', $peta->titik_kordinat) }}" readonly placeholder="Titik Kordinat (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_long">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6" style="display: none;">
+                            <label for="">Titik Kordinat Polygon<span class="required">*</span></label>
+                            <textarea name="titik_kordinat_polygon" class="form-control" id="titik_kordinat_polygon" cols="30" rows="5" readonly>{{ old('titik_kordinat_polygon', $peta->titik_kordinat_polygon) }}</textarea>
+                            {{-- <input type="text" name="titik_kordinat_1" value="{{ old('titik_kordinat_1') }}" placeholder="Titik Kordinat 1 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_1"> --}}
                         </div>
                     </div>
                 </div>
-                <div class="form-group col-sm-12 col-md-6">
-                    <img src="{{ url('storage/'.$peta->foto_peta) }}" alt="">
+
+                <!-- CONTENT 2 -->
+                <div id="content2" class="tab-content">
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label for="">Pilih Surat Permohonan<span class="required">*</span></label>
+                            <select name="surat_permohonan_id" id="surat_permohonan_id" class="form-control">
+                                @php
+                                    $jenis_surat = [
+                                        'skt' => 'Surat Keterangan Tanah (SKT)',
+                                        'sporadik' => 'Surat Pernyataan Penguasaan Fisik (Sporadik)',
+                                        'waris' => 'Surat Keterangan Waris Tanah',
+                                        'hibah' => 'Surat Hibah Tanah',
+                                        'jual_beli' => 'Surat Jual Beli Tanah',
+                                        'tidak_sengketa' => 'Surat Keterangan Tidak Sengketa',
+                                        'permohonan' => 'Surat Permohonan Penggarapan / Pemanfaatan Tanah Desa',
+                                        'lokasi' => 'Surat Keterangan Lokasi Tanah',
+                                    ]
+                                @endphp
+                                @foreach ($permohonans as $a)
+                                    <option value="{{ $a->id_permohonan }}" {{ old('surat_permohonan_id', $peta->surat_permohonan_id) == $a->id_permohonan ? 'selected' : '' }}>{{ $a->id_permohonan }} | {{ $a->nama_lengkap }} | {{ $jenis_surat[$a->kode_jenis] ?? "Tidak ada Permohonan" }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <label for="">Tanggal Pengukuran<span class="required">*</span></label>
+                            <input type="date" name="tanggal_pengukuran" placeholder="Tanggal Pengukuran" value="{{ old('tanggal_pengukuran', $peta->tanggal_pengukuran) }}" class="form-control" id="tanggal_pengukuran">
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <label for="">Peruntukan<span class="required">*</span></label>
+                            <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan', $peta->peruntukan) }}</textarea>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label for="">Status<span class="required">*</span></label>
+                            <input type="text" name="status" placeholder="Status" class="form-control" value="{{ old('status', $peta->status) }}" id="status">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label for="">Panjang<span class="required">*</span></label>
+                            <input type="number" name="panjang" placeholder="Panjang" class="form-control" value="{{ old('panjang', $peta->panjang) ?? 0 }}" id="panjang">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label for="">Lebar<span class="required">*</span></label>
+                            <input type="number" name="lebar" placeholder="Lebar" class="form-control" value="{{ old('lebar', $peta->lebar) ?? 0 }}" id="lebar">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <label for="">Luas<span class="required">*</span></label>
+                            <input type="number" name="luas" placeholder="Luas" readonly class="form-control" value="{{ old('luas', $peta->luas) ?? 0 }}" id="luas">
+                        </div>
+
+                        {{-- <div class="form-group col-sm-12 col-md-6">
+                            <label for="">Titik Kordinat 1<span class="required">*</span></label>
+                            <input type="text" name="titik_kordinat_1" value="{{ old('titik_kordinat_1', $peta->titik_kordinat_1) }}" placeholder="Titik Kordinat 1 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_1">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="">Titik Kordinat 2<span class="required">*</span></label>
+                            <input type="text" name="titik_kordinat_2" value="{{ old('titik_kordinat_2', $peta->titik_kordinat_2) }}" placeholder="Titik Kordinat 2 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_2">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="">Titik Kordinat 3<span class="required">*</span></label>
+                            <input type="text" name="titik_kordinat_3" value="{{ old('titik_kordinat_3', $peta->titik_kordinat_3) }}" placeholder="Titik Kordinat 3 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_3">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="">Titik Kordinat 4<span class="required">*</span></label>
+                            <input type="text" name="titik_kordinat_4" value="{{ old('titik_kordinat_4', $peta->titik_kordinat_4) }}" placeholder="Titik Kordinat 4 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_4">
+                        </div> --}}
+                        <div class="form-group col-sm-12 col-md-6">
+
+                            <div class="upload-section">
+                                <div class="upload-label">Foto Peta<span class="required">*</span></div>
+
+                                <div class="upload-group" id="fotoPetaGroup">
+                                    <div class="upload-input" id="FotoPetaFileName">Foto Peta (JPG, PNG Maks 2MB)</div>
+                                    <label for="ktpUpload" class="upload-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                                        </svg>
+                                    </label>
+                                    <input
+                                        type="file"
+                                        id="foto_peta"
+                                        name="foto_peta"
+                                        accept="image/jpeg,image/jpg,image/png,.pdf"
+                                        {{-- required --}}
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <img src="{{ url('storage/'.$peta->foto_peta) }}" alt="">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <div id="map"></div>
-                </div>
-                <div class="form-group col-sm-12 col-md-6">
-                    <label for="">Titik Kordinat Utama<span class="required">*</span></label>
-                    <input type="text" name="titik_kordinat" value="{{ old('titik_kordinat', $peta->titik_kordinat) }}" readonly placeholder="Titik Kordinat (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_long">
-                </div>
-                <div class="form-group col-sm-12 col-md-6">
-                    <label for="">Titik Kordinat Polygon<span class="required">*</span></label>
-                    <textarea name="titik_kordinat_polygon" class="form-control" id="titik_kordinat_polygon" cols="30" rows="5" readonly>{{ old('titik_kordinat_polygon', $peta->titik_kordinat_polygon) }}</textarea>
-                    {{-- <input type="text" name="titik_kordinat_1" value="{{ old('titik_kordinat_1') }}" placeholder="Titik Kordinat 1 (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_1"> --}}
-                </div>
+
             </div>
+
             <center>
                 <button type="submit" class="btn btn-success p-3">Simpan Data</button>
             </center>
