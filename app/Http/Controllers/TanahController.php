@@ -6,6 +6,8 @@ use App\Models\PetaTanah;
 use App\Models\SuratPermohonan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 
@@ -304,6 +306,41 @@ public function data(Request $request){
                 'lokasi' => 'SKLT',
             ];
 
+            $kordinat_array = [];
+            $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
+            foreach($kordinat_polygon as $wonhi) {
+                $kordinat_latlit = explode(',', $wonhi);
+                $kordinat_array[] = [(float) $kordinat_latlit[1], (float) $kordinat_latlit[0]];
+            }
+            // dd($kordinat_array);
+
+                // Struktur GeoJSON
+            $geojson = [
+                "type" => "FeatureCollection",
+                "features" => [
+                    [
+                        "type" => "Feature",
+                        "properties" => [
+                            "name" => $request->peruntukan
+                        ],
+                        "geometry" => [
+                            "type" => "Polygon",
+                            "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+                        ]
+                    ]
+                ]
+            ];
+
+
+            // Convert ke JSON
+            $json = json_encode($geojson, JSON_PRETTY_PRINT);
+
+            // Simpan file
+            $filename = 'tanah_' . time() . '.geojson';
+            Storage::disk('public')->put('geojson/' . $filename, $json);
+
+            // dd("That Way");
+
             $permohonan = DB::table('surat_permohonan')->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
                           ->where('surat_permohonan.id_permohonan', $request->surat_permohonan_id)->orderBy('surat_permohonan.created_at', 'DESC')->first();
             // dd($permohonan);
@@ -326,7 +363,7 @@ public function data(Request $request){
                 'luas' => $request->luas,
                 'peruntukan'=> $request->peruntukan,
                 'titik_kordinat'=> $request->titik_kordinat,
-                'titik_kordinat_polygon'=> $request->titik_kordinat_polygon,
+                'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
                 // 'titik_kordinat_2'=> $request->titik_kordinat_2,
                 // 'titik_kordinat_3'=> $request->titik_kordinat_3,
                 // 'titik_kordinat_4'=> $request->titik_kordinat_4,
@@ -384,8 +421,48 @@ public function data(Request $request){
             // dd($permohonan);
             $path = $request->path();
 
+            $peta = PetaTanah::where('id',$id)->first();
+            $result = Str::after($peta->titik_kordinat_polygon, 'storage/');
+            $file = storage_path('app/public/'.$result);
+            // dd($file);
+            if (file_exists($file)) {
+                unlink($file);
+            }
+
             // Handle upload Gambar Surat
 
+              $kordinat_array = [];
+            $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
+            foreach($kordinat_polygon as $wonhi) {
+                $kordinat_latlit = explode(',', $wonhi);
+                $kordinat_array[] = [(float) $kordinat_latlit[1], (float) $kordinat_latlit[0]];
+            }
+            // dd($kordinat_array);
+
+                // Struktur GeoJSON
+            $geojson = [
+                "type" => "FeatureCollection",
+                "features" => [
+                    [
+                        "type" => "Feature",
+                        "properties" => [
+                            "name" => $request->peruntukan
+                        ],
+                        "geometry" => [
+                            "type" => "Polygon",
+                            "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+                        ]
+                    ]
+                ]
+            ];
+
+
+            // Convert ke JSON
+            $json = json_encode($geojson, JSON_PRETTY_PRINT);
+
+            // Simpan file
+            $filename = 'tanah_' . time() . '.geojson';
+            Storage::disk('public')->put('geojson/' . $filename, $json);
 
 
             PetaTanah::where('id',$id)->update([
@@ -397,7 +474,7 @@ public function data(Request $request){
                 'luas' => $request->luas,
                 'peruntukan'=> $request->peruntukan,
                 'titik_kordinat'=> $request->titik_kordinat,
-                'titik_kordinat_polygon'=> $request->titik_kordinat_polygon,
+                'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
                 // 'titik_kordinat_2'=> $request->titik_kordinat_2,
                 // 'titik_kordinat_3'=> $request->titik_kordinat_3,
                 // 'titik_kordinat_4'=> $request->titik_kordinat_4,

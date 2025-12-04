@@ -44,7 +44,7 @@
                         <div class="btn btn-warning h-8" style="font-size: 12px;">Nomor Bidang</div>
                         <div class="mb-3">
                             <span class="float-end" style="font-size: 14px;">{{ $item->nomor_bidang }}</span><br>
-                            <span class="float-end" style="font-size: 14px;"><b>{{ $item->SuratPermohonan->nama_lengkap }}</b></span>
+                            <span class="float-end" style="font-size: 14px;"><b>{{ $item->SuratPermohonan->nama_lengkap ?? "-" }}</b></span>
 
                         </div>
                     </div>

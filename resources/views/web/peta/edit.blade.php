@@ -155,9 +155,9 @@ input[type="file"] {
                         <div class="form-group">
                             <div id="map"></div>
                         </div>
-                        <div class="form-group col-sm-12 col-md-6">
+                        <div class="form-group col-sm-12 col-md-6" style="display: none;">
                             <label for="">Titik Kordinat Utama<span class="required">*</span></label>
-                            <input type="text" name="titik_kordinat" value="{{ old('titik_kordinat', $peta->titik_kordinat) }}" readonly placeholder="Titik Kordinat (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_long">
+                            <input type="text" name="titik_kordinat" value="-" readonly placeholder="Titik Kordinat (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat_long">
                         </div>
                         <div class="form-group col-sm-12 col-md-6" style="display: none;">
                             <label for="">Titik Kordinat Polygon<span class="required">*</span></label>
@@ -313,227 +313,114 @@ input[type="file"] {
 <script>
     @section('jquery')
 
-    @php
-        $titik_kordinat_utama = explode(",", $peta->titik_kordinat);
-        $poly_text = $peta->titik_kordinat_polygon;
-        // dd($poly_text);
-        $poly =   explode("\r\n", $peta->titik_kordinat_polygon);
-    @endphp
+@php
+    $geojsonPath = public_path($peta->titik_kordinat_polygon);
+    $geojsonData = file_get_contents($geojsonPath);
+@endphp
 
-    let singlePoint = null;
-    let polygonCoords = [];
+let geojsonData = {!! $geojsonData !!};
 
+let map = L.map('map').setView([-6.2, 106.8], 13);
 
-    let map, polygonLayer;
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+}).addTo(map);
 
-    // Buat map awal (posisi default sebelum GPS ditemukan)
-    map = L.map('map').setView([-6.2, 106.8], 13);
+let markersLayer = L.layerGroup().addTo(map);
+let polygonLayer = null;
+let polygonCoords = [];
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-    }).addTo(map);
+// === UPDATE TEXTAREA ===
 
-    // Semua marker
-    let markersLayer = L.layerGroup().addTo(map);
+// === REDRAW POLYGON ===
+function redrawPolygon() {
+    if (polygonLayer) map.removeLayer(polygonLayer);
 
+    if (polygonCoords.length >= 3) {
+        polygonLayer = L.polygon(polygonCoords, {
+            color: "blue",
+            weight: 3,
+            fillColor: "lightblue",
+            fillOpacity: 0.3
+        }).addTo(map);
+    }
+}
 
-    // === ICON BIRU UNTUK USER ===
-    const userIcon = L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -35]
+function updatePolygonTextarea() {
+    let text = polygonCoords.map(c => c.join(", ")).join("\n");
+    $("#titik_kordinat_polygon").val(text);
+}
+
+// === BUAT MARKER EDITABLE ===
+function createEditableMarker(latlng, index) {
+    let marker = L.marker(latlng, { draggable: true }).addTo(markersLayer);
+
+    marker.bindPopup("Titik " + (index + 1));
+
+    // ⭐ DRAG UNTUK EDIT KOORDINAT
+    marker.on("drag", function (e) {
+        polygonCoords[index] = [e.latlng.lat, e.latlng.lng];
+        redrawPolygon();
+        updatePolygonTextarea();
     });
 
-    // === TAMPILKAN LOKASI PENGGUNA (GPS) ===
-    let userMarker;
+    // ⭐ LONG PRESS (0.8s) UNTUK HAPUS TITIK
+    let pressTimer;
+    marker.on("mousedown touchstart", function () {
+        pressTimer = setTimeout(() => {
+            removePoint(index);
+        }, 800);
+    });
 
+    marker.on("mouseup mouseleave touchend", function () {
+        clearTimeout(pressTimer);
+    });
+}
 
-    function enableLongPressDelete(marker, index = null) {
-        let pressTimer;
+// === HAPUS TITIK ===
+function removePoint(index) {
+    polygonCoords.splice(index, 1);
 
-        marker.on("mousedown touchstart", function () {
-            pressTimer = setTimeout(() => {
-                // map.removeLayer(marker);
-                if(index == null) {
-                    removeMarker(marker)
-                } else {
-                    removeMarker(marker, index)
-                }
-                // currentMarker = null;
-            }, 800); // tahan 0.8 detik
+    markersLayer.clearLayers();
+
+    polygonCoords.forEach((c, i) => createEditableMarker(c, i));
+
+    redrawPolygon();
+    updatePolygonTextarea();
+}
+
+// geojsonData dari Blade
+let geo = L.geoJSON(geojsonData);
+
+geo.eachLayer(function(layer) {
+    if (layer.feature.geometry.type === "Polygon") {
+        let coords = layer.feature.geometry.coordinates[0];
+
+        coords.forEach(c => {
+            polygonCoords.push([c[1], c[0]]); // GeoJSON = lon,lat → Leaflet butuh lat,lon
         });
 
-        marker.on("mouseup mouseleave touchend", function () {
-            clearTimeout(pressTimer);
+        // Buat marker editable
+        polygonCoords.forEach((coord, i) => {
+            createEditableMarker(coord, i);
         });
+
+        redrawPolygon();
+        updatePolygonTextarea();
+        map.fitBounds(polygonCoords);
     }
+});
 
-    map.locate({ setView: true, maxZoom: 16 });
+map.on("click", function(e) {
+    let newPoint = [e.latlng.lat, e.latlng.lng];
 
-    map.on("locationfound", function(e) {
-        let lat = e.latlng.lat;
-        let lng = e.latlng.lng;
+    polygonCoords.push(newPoint);
 
-        userMarker = L.marker([lat, lng], {
-            icon: userIcon,       // <- icon biru
-            draggable: false
-        })
-        .addTo(map)
-        .bindPopup("Lokasi Anda (GPS)")
-        .openPopup();
-    });
-    map.on("locationerror", function() {
-        alert("Tidak bisa mendapatkan lokasi GPS. Pastikan izin lokasi diaktifkan.");
-    });
+    createEditableMarker(newPoint, polygonCoords.length - 1);
 
-    // === FUNGSI HAPUS MARKER ===
-    function removeMarker(marker, index = null) {
-        markersLayer.removeLayer(marker);
-
-        if (index !== null) {
-            polygonCoords.splice(index, 1);
-            $('#titik_kordinat').val('');
-
-        }
-
-        if (polygonLayer) {
-            map.removeLayer(polygonLayer);
-
-                        let polygonCoordsText = "";
-            for(let i = 0; i < polygonCoords.length; i++) {
-                polygonCoordsText += `${polygonCoords[i]} \n`;
-            }
-
-            $('#titik_kordinat_polygon').val('');
-            $('#titik_kordinat_polygon').val(polygonCoordsText);
-        }
-
-        if (polygonCoords.length > 0) {
-            polygonLayer = L.polygon(polygonCoords, {
-                color: "blue",
-                weight: 3,
-                fillColor: "lightblue",
-                fillOpacity: 0.3
-            }).addTo(map);
-        }
-    }
-
-
-    // ICON TITIK TUNGGAL (WARNA HIJAU)
-    const singleIcon = L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/535/535239.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -35]
-    });
-
-    // let markerSingleAwal = L.marker(singlePoint, { icon: singleIcon }).addTo(markersLayer);
-    // markerSingleAwal.bindPopup("Titik Tunggal").openPopup();
-
-    // enableLongPressDelete(markerSingleAwal);
-
-    //     // === Marker untuk setiap titik polygon ===
-    // polygonCoords.forEach((coord, i) => {
-    //     let m = L.marker(coord)
-    //         .addTo(markersLayer)
-    //         .bindPopup("Titik Polygon " + (i + 1));
-
-    //     enableLongPressDelete(m, i);
-    // });
-
-
-    //     // === Buat polygon yang menyambungkan semua titik ===
-    // L.polygon(polygonCoords, {
-    //     color: "blue",
-    //     weight: 3,
-    //     fillColor: "lightblue",
-    //     fillOpacity: 0.3
-    // }).addTo(map);
-
-    function PinLokasi(lat, lng) {
-        if (!singlePoint) {
-            // Titik tunggal
-            console.log("Ini Single");
-            singlePoint = [lat, lng];
-
-            let marker = L.marker(singlePoint, { icon: singleIcon }).addTo(markersLayer);
-            marker.bindPopup("Titik Tunggal").openPopup();
-
-            $('#titik_kordinat').val('');
-            $('#titik_kordinat').val(singlePoint);
-
-
-            marker.on("contextmenu", function () {
-                // removeMarker(marker);
-                singlePoint = null;
-            });
-
-            enableLongPressDelete(marker);
-
-        } else {
-            console.log("Ini Multi");
-
-            // Titik polygon titik_kordinat_polygon
-            polygonCoords.push([lat, lng]);
-
-            let polygonCoordsText = "";
-            for(let i = 0; i < polygonCoords.length; i++) {
-                polygonCoordsText += `${polygonCoords[i]} \n`;
-            }
-
-            $('#titik_kordinat_polygon').val('');
-            $('#titik_kordinat_polygon').val(polygonCoordsText);
-
-            let index = polygonCoords.length - 1;
-
-            let marker = L.marker([lat, lng]).addTo(markersLayer);
-            marker.bindPopup("Titik Polygon " + (index + 1)).openPopup();
-
-            marker.on("contextmenu", function () {
-                // removeMarker(marker, index);
-            });
-
-            // Gambar ulang polygon
-            if (polygonLayer) {
-                map.removeLayer(polygonLayer);
-            }
-
-            polygonLayer = L.polygon(polygonCoords, {
-                color: "blue",
-                weight: 3,
-                fillColor: "lightblue",
-                fillOpacity: 0.3
-            }).addTo(map);
-
-            // map.fitBounds(polygonCoords)
-
-            enableLongPressDelete(marker, index);
-
-        }
-    }
-
-    PinLokasi(parseFloat("{{ $titik_kordinat_utama[0] }}"),parseFloat("{{ $titik_kordinat_utama[1] }}"));
-    map.setView(singlePoint, 16);
-
-
-    @foreach ($poly as $index => $value)
-        @php
-            $poly_one = explode(",", $value);
-
-        @endphp
-        PinLokasi(parseFloat("{{ $poly_one[0] }}"),parseFloat("{{ $poly_one[1] }}"));
-        // polygonCoords.push([parseFloat("{{ $poly_one[0] }}"), parseFloat("{{ $poly_one[1] }}")]);
-    @endforeach
-    // === EVENT KLIK MAP ===
-    map.on("click", function (e) {
-        // let lat = e.latlng.lat;
-        // let lng = e.latlng.lng;
-
-        PinLokasi(e.latlng.lat, e.latlng.lng)
-
-
-    });
+    redrawPolygon();
+    updatePolygonTextarea();
+});
 
 
 

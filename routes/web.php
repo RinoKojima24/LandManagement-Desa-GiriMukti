@@ -14,9 +14,10 @@ use App\Http\Controllers\TanahController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PermohonanSuratController;
+use App\Models\PetaTanah;
 use Database\Seeders\NontificationFactory;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 
 // ===========================
 // GUEST (Login & Register)
@@ -26,6 +27,66 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', fn() => view('Auth.login'))->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login_post');
 
+    Route::get("/show_geojson", function() {
+        $json = file_get_contents("geojson_test.geojson");
+
+        $data = json_decode($json, true);
+
+        foreach($data['features'] as $index => $a) {
+            $kordinat_array = [];
+
+
+            foreach($a['geometry']['coordinates'][0] as $b) {
+                $kordinat_array[] = [(float) $b[0], (float) $b[1]];
+
+            }
+            // dd($kordinat_array);
+
+                // Struktur GeoJSON
+            $geojson = [
+                "type" => "FeatureCollection",
+                "features" => [
+                    [
+                        "type" => "Feature",
+                        "properties" => [
+                            "name" => $a['properties']['Wilayah_RT']
+                        ],
+                        "geometry" => [
+                            "type" => "Polygon",
+                            "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+                        ]
+                    ]
+                ]
+            ];
+
+
+            // Convert ke JSON
+            $json = json_encode($geojson, JSON_PRETTY_PRINT);
+
+            // Simpan file
+            $filename = 'tanah_' . uniqid() . '.geojson';
+            Storage::disk('public')->put('geojson/' . $filename, $json);
+
+
+
+            PetaTanah::create([
+                'nomor_bidang' => "SPFF/".$index."/".date('Y'),
+                'status'=> "-",
+                'panjang' => 0,
+                'lebar' => 0,
+                'luas' => $a['properties']['Luas'],
+                'peruntukan'=> $a['properties']['Wilayah_RT'],
+                'titik_kordinat'=> "-",
+                'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
+                'tanggal_pengukuran'=> date('Y-m-d'),
+                'foto_peta'=> "-",
+            ]);
+        }
+
+
+        // dd($data);
+        dd("Done");
+    });
 
     Route::get('/', function () {
         return view('guest.home');
@@ -372,6 +433,7 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::patch('/{tipe}/{id}/status', [PermohonanSuratController::class, 'updateStatus'])->name('updateStatus');
 });
 });
+
 
 
 

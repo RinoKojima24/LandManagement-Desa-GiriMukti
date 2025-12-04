@@ -1,204 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Leaflet Curved Polygon Example</title>
-
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-    <!-- Leaflet.curve Plugin -->
-    <script src="https://unpkg.com/leaflet.curve"></script>
-
-    <style>
-        #map {
-            width: 100%;
-            height: 600px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Contoh GeoJSON + Leaflet</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 90vh; width: 100%; }
+  </style>
 </head>
-
 <body>
+  <div id="map"></div>
 
-<div id="map"></div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // buat map
+    const map = L.map('map').setView([0, 0], 2);
 
-<script>
-// =======================
-// 1. INIT MAP
-// =======================
-let map = L.map('map').setView([-6.2, 106.8], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OSM'
+    }).addTo(map);
 
-// Base layer
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
-}).addTo(map);
+    // load GeoJSON
+    fetch('geojson_test.geojson')
+      .then(res => res.json())
+      .then(geojson => {
+        const layer = L.geoJSON(geojson, {
+          style: feature => ({
+            color: '#3388ff',
+            weight: 2,
+            fillOpacity: 0.4
+          }),
+          onEachFeature: (feature, layer) => {
+            // popup menampilkan atribut (dbf fields)
+            if (feature.properties) {
+              const props = feature.properties;
+              let html = '<table>';
+              for (const key in props) {
+                html += `<tr><th>${key}</th><td>${props[key]}</td></tr>`;
+              }
+              html += '</table>';
+              layer.bindPopup(html);
+            }
+          }
+        }).addTo(map);
 
-// =======================
-// 2. DATA TITIK POLYGON
-// =======================
-let polygonCoords = [
-    [-6.2011, 106.8010],
-    [-6.2020, 106.8030],
-    [-6.2035, 106.8020],
-    [-6.2030, 106.8000]
-];
-
-// =======================
-// 3. TAMPILKAN MARKER
-// =======================
-
-polygonCoords.forEach((coord, i) => {
-    L.marker(coord).addTo(map).bindPopup("Titik Polygon " + (i + 1));
-});
-
-// =======================
-// 4. BIKIN POLYGON MELENGKUNG asdasdasdasdsadasdasdasd
-// =======================
-
-// Buat format kurva
-let curvePoints = [];
-
-for (let i = 0; i < polygonCoords.length; i++) {
-    let p1 = polygonCoords[i];
-    let p2 = polygonCoords[(i + 1) % polygonCoords.length]; // next point (loop)
-
-    // Titik kontrol = midpoint supaya lembut
-    let control = [
-        (p1[0] + p2[0]) / 2,
-        (p1[1] + p2[1]) / 2
-    ];
-
-    curvePoints.push(
-        'M', p1,
-        'Q', control, p2
-    );
-}
-
-// Gambar polygon curve
-L.curve(curvePoints, {
-    color: "blue",
-    weight: 3,
-    fill: true,
-    fillColor: "lightblue",
-    fillOpacity: 0.35
-}).addTo(map);
-
-</script>
-
+        // zoom ke bounds layer
+        map.fitBounds(layer.getBounds());
+      })
+      .catch(err => console.error('Gagal load GeoJSON:', err));
+  </script>
 </body>
 </html>
-
-    <div class="wrapper">
-            <!-- Main content -->
-            <section class="content">
-                <div class="container-fluid">
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                    @endif
-
-                    @if($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <ul class="mb-0">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                    @endif
-                </div>
-                  <main class="flex-grow">
-                        <div class="login-container">
-                            <div class="logo">
-                                <span>🏛️</span>
-                            </div>
-
-                            <h1 class="title">Desa Girimukti s</h1>
-                            <p class="subtitle">
-                                Memanfaatkan sistem dan mengolah administrasi<br>
-                                dengan pembaharuan sistem yang memungkinkan<br>
-                                efektif dan efisien dalam mengolah data segala<br>
-                                administrasi dan mengoptimalkan sistem
-                            </p>
-
-                            {{-- 🔔 Flasher Message --}}
-                            @if (session('success'))
-                                <div class="alert alert-success">
-                                    {{ session('success') }}
-                                </div>
-                            @endif
-
-                            @if (session('error'))
-                                <div class="alert alert-error">
-                                    {{ session('error') }}
-                                </div>
-                            @endif
-
-                            @if ($errors->any())
-                                <div class="alert alert-error">
-                                    <ul>
-                                        @foreach ($errors->all() as $error)
-                                            <li>⚠️ {{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
-                            {{-- End Flasher --}}
-
-                            <div class="login-section">
-                                <h2 class="login-title">Login</h2>
-                                <p class="login-desc">Masuk menggunakan akun yang terdaftar</p>
-                            </div>
-
-                            <form id="loginForm" action="{{ route('login_post') }}" method="POST" class="login-form">
-                                @csrf
-                                <div class="form-group">
-                                    <span class="icon">👤</span>
-                                    <input type="text" name="username" id="username" placeholder="Username / No. HP" required>
-                                </div>
-
-                                <div class="form-group password-group">
-                                    <span class="icon">🔒</span>
-                                    <input type="password" name="password" id="password" placeholder="Password" required>
-                                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
-                                </div>
-
-                                <button type="submit" class="login-btn">Login</button>
-                            </form>
-                        </div>
-                    </main>
-            </section>
-        </div>
-
-        <!-- Main Footer -->
-        <footer class="main-footer">
-            <strong>&copy; {{ date('Y') }} <a href="#">Sistem Informasi Bidang Tanah</a>.</strong>
-            All rights reserved.
-            <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 1.0.0
-            </div>
-        </footer>
-
-        <!-- Overlay for mobile sidebar -->
-        <div class="sidebar-overlay d-md-none" style="display: none;"></div>
-    </div>
-
-

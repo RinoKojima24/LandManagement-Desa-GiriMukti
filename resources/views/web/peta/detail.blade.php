@@ -11,6 +11,7 @@
         }
     </style>
 
+{{-- @dd($peta); --}}
 
 
 <div class="container-fluid px-3 py-4" style="background-color: #f5f5f5; min-height: 100vh;">
@@ -35,7 +36,7 @@
             <img src="{{ url('storage/'.$peta->foto_peta) }}" class="d-block mx-auto" alt="">
             <div class="d-flex justify-content-between">
                 <div>
-                    <span style="font-size: 14px;"><b>{{ $peta->SuratPermohonan->nama_lengkap }}</b></span><br>
+                    <span style="font-size: 14px;"><b>{{ $peta->SuratPermohonan->nama_lengkap ?? ""}}</b></span><br>
                     <span style="font-size: 13px;">{{ $peta->nomor_bidang }}</span>
                 </div>
                 <div>
@@ -64,27 +65,24 @@
             </div>
             <br>
             @php
-                $kordinat = explode(',', $peta->titik_kordinat);
+                $kordinat = explode(',', ($peta->titik_kordinat == "-" ? '0,0' : $peta->titik_kordinat));
                 // $kordinat_1 = explode(',', $peta->titik_kordinat_1);
                 // $kordinat_2 = explode(',', $peta->titik_kordinat_2);
                 // $kordinat_3 = explode(',', $peta->titik_kordinat_3);
                 // $kordinat_4 = explode(',', $peta->titik_kordinat_4);
 
             @endphp
-            {{-- <div class="embed-responsive embed-responsive-16by9">
-                <iframe class="embed-responsive-item" src="https://maps.google.com/maps?q={{ $kordinat[0] }},{{ $kordinat[1] }}&output=embed" width="100%" height="500" frameborder="0"></iframe>
-            </div> --}}
             <div id="map"></div>
 
             <br>
-            <div class="d-flex justify-content-between">
+            {{-- <div class="d-flex justify-content-between">
                 <div>
                     <label for="" style="font-size: 14px;">Titik Kordinat</label><br>
                     <span style="font-size: 13px;">{{ $peta->titik_kordinat }}</span>
                 </div>
-            </div>
+            </div> --}}
             {{-- <br> --}}
-            <hr><br>
+            <hr>
                 @php
                     $poly_text = $peta->titik_kordinat_polygon;
                     // dd($poly_text);
@@ -145,73 +143,42 @@
         }
     }
 </style>
+  <script>
+    // buat map
+    const map = L.map('map').setView([0, 0], 2);
 
-<script>
-    // ==== 1 KOORDINAT SOLO ====
-    const singlePoint = [parseFloat("{{ $kordinat[0] }}"), parseFloat("{{ $kordinat[1] }}")]; // misal titik lokasi utama
-
-    // ==== 4 KOORDINAT POLYGON ====
-
-    const polygonCoords = [];
-
-    @foreach ($poly as $index => $value)
-        @php
-            $poly_one = explode(",", $value);
-
-        @endphp
-        polygonCoords.push([parseFloat("{{ $poly_one[0] }}"), parseFloat("{{ $poly_one[1] }}")]);
-    @endforeach
-
-   {{--   // const polygonCoords = [
-    //     [parseFloat("{{ $kordinat_1[0] }}"), parseFloat("{{ $kordinat_1[1] }}")], // titik A
-    //     [parseFloat("{{ $kordinat_2[0] }}"), parseFloat("{{ $kordinat_2[1] }}")], // titik B
-    //     [parseFloat("{{ $kordinat_3[0] }}"), parseFloat("{{ $kordinat_3[1] }}")], // titik C
-    //     [parseFloat("{{ $kordinat_4[0] }}"), parseFloat("{{ $kordinat_4[1] }}")]  // titik D
-    // ]; --}}
-
-    // Buat map di titik pertama
-    var map = L.map('map').setView(singlePoint, 14);
-
-    // Tile layer OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
+      attribution: '&copy; OSM'
     }).addTo(map);
 
-    // ICON TITIK TUNGGAL (HIJAU)
-    const singleIcon = L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -35]
-    });
+    // load GeoJSON
+    fetch('{{ asset("$peta->titik_kordinat_polygon") }}')
+      .then(res => res.json())
+      .then(geojson => {
+        const layer = L.geoJSON(geojson, {
+          style: feature => ({
+            color: '#3388ff',
+            weight: 2,
+            fillOpacity: 0.4
+          }),
+          onEachFeature: (feature, layer) => {
+            // popup menampilkan atribut (dbf fields)
+            if (feature.properties) {
+              const props = feature.properties;
+              let html = '<table>';
+              for (const key in props) {
+                html += `<tr><th>${key}</th><td>${props[key]}</td></tr>`;
+              }
+              html += '</table>';
+              layer.bindPopup(html);
+            }
+          }
+        }).addTo(map);
 
-    // ICON TITIK POLYGON (BIRU)
-    const polygonIcon = L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -35]
-    });
+        // zoom ke bounds layer
+        map.fitBounds(layer.getBounds());
+      })
+      .catch(err => console.error('Gagal load GeoJSON:', err));
+  </script>
 
-    // === Marker tunggal ===
-    L.marker(singlePoint,  { icon: singleIcon })
-        .addTo(map)
-        .bindPopup("Titik Tunggal");
-
-    // === Marker untuk setiap titik polygon ===
-    polygonCoords.forEach((coord, i) => {
-        L.marker(coord)
-            .addTo(map)
-            .bindPopup("Titik Polygon " + (i + 1));
-    });
-
-    // === Buat polygon yang menyambungkan semua titik ===
-    L.polygon(polygonCoords, {
-        color: "blue",
-        weight: 3,
-        fillColor: "lightblue",
-        fillOpacity: 0.3
-    }).addTo(map);
-
-</script>
 @endsection

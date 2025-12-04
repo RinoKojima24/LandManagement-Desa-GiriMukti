@@ -147,9 +147,9 @@ input[type="file"] {
                             <div class="form-group">
                                 <div id="map"></div>
                             </div>
-                            <div class="form-group col-sm-12 col-md-6">
+                            <div class="form-group col-sm-12 col-md-6" style="display: none;">
                                 <label for="">Titik Kordinat Utama<span class="required">*</span></label>
-                                <input type="text" name="titik_kordinat" value="{{ old('titik_kordinat') }}" readonly placeholder="Titik Kordinat (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat">
+                                <input type="text" name="titik_kordinat" value="-" readonly placeholder="Titik Kordinat (-0.4743788971644572, 117.15811604595541)" class="form-control" id="titik_kordinat">
                             </div>
                             <div class="form-group col-sm-12 col-md-6" style="display: none;">
                                 <label for="">Titik Kordinat Polygon<span class="required">*</span></label>
@@ -288,176 +288,80 @@ input[type="file"] {
 
 <script>
     @section('jquery')
-    let singlePoint = null;
-    let polygonCoords = [];
-    let map, polygonLayer;
+    let map = L.map('map').setView([-6.2, 106.8], 13);
 
-    // Buat map awal (posisi default sebelum GPS ditemukan)
-    map = L.map('map').setView([-6.2, 106.8], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+}).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-    }).addTo(map);
+let markersLayer = L.layerGroup().addTo(map);
+let polygonLayer = null;
+let polygonCoords = [];
 
-    // Semua marker
-    let markersLayer = L.layerGroup().addTo(map);
+function updatePolygonTextarea() {
+    let text = polygonCoords.map(c => c.join(", ")).join("\n");
+    $("#titik_kordinat_polygon").val(text);
+}
 
+function redrawPolygon() {
+    if (polygonLayer) map.removeLayer(polygonLayer);
 
-    // === ICON BIRU UNTUK USER ===
-    const userIcon = L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -35]
-    });
-
-    // === TAMPILKAN LOKASI PENGGUNA (GPS) ===
-    let userMarker;
-
-
-    function enableLongPressDelete(marker, index = null) {
-        let pressTimer;
-
-        marker.on("mousedown touchstart", function () {
-            pressTimer = setTimeout(() => {
-                // map.removeLayer(marker);
-                if(index == null) {
-                    removeMarker(marker)
-                } else {
-                    removeMarker(marker, index)
-                }
-                // currentMarker = null;
-            }, 800); // tahan 0.8 detik
-        });
-
-        marker.on("mouseup mouseleave touchend", function () {
-            clearTimeout(pressTimer);
-        });
+    if (polygonCoords.length >= 3) {
+        polygonLayer = L.polygon(polygonCoords, {
+            color: "blue",
+            weight: 3,
+            fillColor: "lightblue",
+            fillOpacity: 0.3
+        }).addTo(map);
     }
+}
 
-    map.locate({ setView: true, maxZoom: 16 });
+function createEditableMarker(latlng, index) {
+    let marker = L.marker(latlng, { draggable: true }).addTo(markersLayer);
 
-    map.on("locationfound", function(e) {
-        let lat = e.latlng.lat;
-        let lng = e.latlng.lng;
+    marker.bindPopup("Titik " + (index + 1));
 
-        userMarker = L.marker([lat, lng], {
-            icon: userIcon,       // <- icon biru
-            draggable: false
-        })
-        .addTo(map)
-        .bindPopup("Lokasi Anda (GPS)")
-        .openPopup();
-    });
-    map.on("locationerror", function() {
-        alert("Tidak bisa mendapatkan lokasi GPS. Pastikan izin lokasi diaktifkan.");
+    // DRAG = update titik
+    marker.on("drag", function (e) {
+        polygonCoords[index] = [e.latlng.lat, e.latlng.lng];
+        redrawPolygon();
+        updatePolygonTextarea();
     });
 
-    // === FUNGSI HAPUS MARKER ===
-    function removeMarker(marker, index = null) {
-        markersLayer.removeLayer(marker);
-
-        if (index !== null) {
-            polygonCoords.splice(index, 1);
-            $('#titik_kordinat').val('');
-
-        }
-
-        if (polygonLayer) {
-            map.removeLayer(polygonLayer);
-
-                        let polygonCoordsText = "";
-            for(let i = 0; i < polygonCoords.length; i++) {
-                polygonCoordsText += `${polygonCoords[i]} \n`;
-            }
-
-            $('#titik_kordinat_polygon').val('');
-            $('#titik_kordinat_polygon').val(polygonCoordsText);
-        }
-
-        if (polygonCoords.length > 0) {
-            polygonLayer = L.polygon(polygonCoords, {
-                color: "blue",
-                weight: 3,
-                fillColor: "lightblue",
-                fillOpacity: 0.3
-            }).addTo(map);
-        }
-    }
-
-
-    // ICON TITIK TUNGGAL (WARNA HIJAU)
-    const singleIcon = L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/535/535239.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -35]
+    // LONG PRESS (0.8s) = hapus titik
+    let pressTimer;
+    marker.on("mousedown touchstart", function () {
+        pressTimer = setTimeout(() => {
+            removePoint(index);
+        }, 800);
     });
 
-    // === EVENT KLIK MAP ===
-    map.on("click", function (e) {
-        let lat = e.latlng.lat;
-        let lng = e.latlng.lng;
-
-        if (!singlePoint) {
-            // Titik tunggal
-            singlePoint = [lat, lng];
-
-            let marker = L.marker(singlePoint, { icon: singleIcon }).addTo(markersLayer);
-            marker.bindPopup("Titik Tunggal").openPopup();
-
-            $('#titik_kordinat').val('');
-            $('#titik_kordinat').val(singlePoint);
-
-
-            marker.on("contextmenu", function () {
-                // removeMarker(marker);
-                singlePoint = null;
-            });
-
-            enableLongPressDelete(marker);
-
-        } else {
-            // Titik polygon titik_kordinat_polygon
-            polygonCoords.push([lat, lng]);
-
-            let polygonCoordsText = "";
-            for(let i = 0; i < polygonCoords.length; i++) {
-                polygonCoordsText += `${polygonCoords[i]} \n`;
-            }
-
-            $('#titik_kordinat_polygon').val('');
-            $('#titik_kordinat_polygon').val(polygonCoordsText);
-
-            let index = polygonCoords.length - 1;
-
-            let marker = L.marker([lat, lng]).addTo(markersLayer);
-            marker.bindPopup("Titik Polygon " + (index + 1)).openPopup();
-
-            marker.on("contextmenu", function () {
-                // removeMarker(marker, index);
-            });
-
-            // Gambar ulang polygon
-            if (polygonLayer) {
-                map.removeLayer(polygonLayer);
-            }
-
-            polygonLayer = L.polygon(polygonCoords, {
-                color: "blue",
-                weight: 3,
-                fillColor: "lightblue",
-                fillOpacity: 0.3
-            }).addTo(map);
-
-            map.fitBounds(polygonCoords);
-
-            enableLongPressDelete(marker, index);
-
-        }
-
+    marker.on("mouseup mouseleave touchend", function () {
+        clearTimeout(pressTimer);
     });
+}
 
+function removePoint(index) {
+    polygonCoords.splice(index, 1);
+
+    markersLayer.clearLayers();
+
+    polygonCoords.forEach((coord, i) => createEditableMarker(coord, i));
+
+    redrawPolygon();
+    updatePolygonTextarea();
+}
+
+map.on("click", function(e) {
+    let newPoint = [e.latlng.lat, e.latlng.lng];
+
+    polygonCoords.push(newPoint);
+
+    createEditableMarker(newPoint, polygonCoords.length - 1);
+
+    redrawPolygon();
+    updatePolygonTextarea();
+});
 
 
 
