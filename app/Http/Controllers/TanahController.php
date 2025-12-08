@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PetaTanah;
 use App\Models\SuratPermohonan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -256,17 +257,20 @@ public function data(Request $request){
 }
 
     public function create(){
-        $data['permohonans'] = DB::table('surat_permohonan')
-                            ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
-                            ->orderBy('surat_permohonan.created_at', 'DESC')->get();
+        // $data['permohonans'] = DB::table('surat_permohonan')
+        //                     ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+        //                     ->orderBy('surat_permohonan.created_at', 'DESC')->get();
         // dd($data['permohonans'][0]->id_permohonan);
+        $data['warga'] = User::where('role', 'warga')->get();
         return view('web.peta.tambah', $data);
     }
 
     public function edit($id){
-        $data['permohonans'] = DB::table('surat_permohonan')
-                            ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
-                            ->orderBy('surat_permohonan.created_at', 'DESC')->get();
+        // $data['permohonans'] = DB::table('surat_permohonan')
+        //                     ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+        //                     ->orderBy('surat_permohonan.created_at', 'DESC')->get();
+
+        $data['warga'] = User::where('role', 'warga')->get();
         $data['peta'] = PetaTanah::find($id);
         // dd($data['permohonans'][0]->id_permohonan);
         return view('web.peta.edit', $data);
@@ -279,10 +283,10 @@ public function data(Request $request){
     }
 
     public function store(Request $request) {
-        try {
+        // dd("ASD");
             // Validasi request
             $request->validate([
-                'surat_permohonan_id' => 'required',
+                'user_id' => 'required',
                 'tanggal_pengukuran' => 'required',
                 'peruntukan' => 'required',
                 'status' => 'required',
@@ -305,6 +309,8 @@ public function data(Request $request){
                 'permohonan' => 'SPP',
                 'lokasi' => 'SKLT',
             ];
+
+            // dd($request->titik_kordinat_polygon);
 
             $kordinat_array = [];
             $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
@@ -341,8 +347,8 @@ public function data(Request $request){
 
             // dd("That Way");
 
-            $permohonan = DB::table('surat_permohonan')->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
-                          ->where('surat_permohonan.id_permohonan', $request->surat_permohonan_id)->orderBy('surat_permohonan.created_at', 'DESC')->first();
+            // $permohonan = DB::table('surat_permohonan')->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
+            //               ->where('surat_permohonan.id_permohonan', $request->surat_permohonan_id)->orderBy('surat_permohonan.created_at', 'DESC')->first();
             // dd($permohonan);
             $path = $request->path();
 
@@ -354,9 +360,9 @@ public function data(Request $request){
             }
 
 
-            PetaTanah::create([
-                'nomor_bidang' => $jenis_surat[$permohonan->kode_jenis]."/".str_pad($permohonan->id_permohonan, 3, '0', STR_PAD_LEFT)."/".date('Y'),
-                'surat_permohonan_id' => $request->surat_permohonan_id,
+            $peta = PetaTanah::create([
+                'nomor_bidang' => str_pad(0, 3, '0', STR_PAD_LEFT)."/".date('Y'),
+                'user_id' => $request->user_id,
                 'status'=> $request->status,
                 'panjang' => $request->panjang,
                 'lebar' => $request->lebar,
@@ -371,6 +377,11 @@ public function data(Request $request){
                 'tanggal_pengukuran'=> $request->tanggal_pengukuran,
                 'foto_peta'=> $gambarPath,
             ]);
+
+
+            $peta_edit = PetaTanah::find($peta->id);
+            $peta_edit->nomor_bidang = str_pad($peta_edit->id, 3, '0', STR_PAD_LEFT)."/".date('Y');
+            $peta_edit->save();
             // dd("ASD");
 
 
@@ -380,6 +391,7 @@ public function data(Request $request){
             // return redirect()->back()->with('success', "Data Tanah telah ditambahkan!");
             return redirect()->to('tanah')->with('success', "Data Tanah telah ditambahkan!");
 
+        try {
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -392,7 +404,7 @@ public function data(Request $request){
         try {
             // Validasi request
             $request->validate([
-                'surat_permohonan_id' => 'required',
+                'user_id' => 'required',
                 'tanggal_pengukuran' => 'required',
                 'peruntukan' => 'required',
                 'status' => 'required',
@@ -466,8 +478,7 @@ public function data(Request $request){
 
 
             PetaTanah::where('id',$id)->update([
-                'nomor_bidang' => $jenis_surat[$permohonan->kode_jenis]."/".str_pad($permohonan->id_permohonan, 3, '0', STR_PAD_LEFT)."/".date('Y'),
-                'surat_permohonan_id' => $request->surat_permohonan_id,
+                'user_id' => $request->user_id,
                 'status'=> $request->status,
                 'panjang' => $request->panjang,
                 'lebar' => $request->lebar,

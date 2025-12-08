@@ -15,8 +15,10 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PermohonanSuratController;
 use App\Models\PetaTanah;
+use App\Models\User;
 use Database\Seeders\NontificationFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 // ===========================
@@ -26,6 +28,10 @@ use Illuminate\Support\Facades\Storage;
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn() => view('Auth.login'))->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login_post');
+
+    Route::get('/register', [AuthenticatedSessionController::class, 'register']);
+    Route::post('/register/send-otp', [AuthenticatedSessionController::class, 'sendOtp']);
+    Route::post('/register/check-otp', [AuthenticatedSessionController::class, 'checkOtp']);
 
     Route::get("/show_geojson", function() {
         $json = file_get_contents("geojson_test.geojson");
@@ -88,9 +94,12 @@ Route::middleware('guest')->group(function () {
         dd("Done");
     });
 
-    Route::get('/', function () {
-        return view('guest.home');
-    })->name('guest.home');
+    // Route::get('/', function () {
+    //     return view('guest.home');
+    // })->name('guest.home');
+
+    Route::get('/', fn() => view('Auth.login'))->name('guest.home');
+
 
     Route::get('/pengajuan_surat', function() {
         // Kirim variabel ke view
@@ -102,9 +111,8 @@ Route::middleware('guest')->group(function () {
     });
 
     Route::get('/test', function() {
-        $pesan = "Ayam\nsapi\nkambing";
-        WaHelpers::sendWa('081212379429', $pesan);
-        // dd("Ziteru");
+        // $pesan = "Ayam\nsapi\nkambing";
+        // WaHelpers::sendWa('081212379429', $pesan);
     });
 
     Route::post('/pengajuan', function(Request $request) {

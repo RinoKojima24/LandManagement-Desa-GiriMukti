@@ -18,9 +18,14 @@
 
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
     <style>
-body {
-    display: block !important;     /* Biar normal lagi */
-}
+
+        .card {
+            background: white;
+            padding: 20px;
+            width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
@@ -37,6 +42,15 @@ body {
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #f87171;
+        }
+
+        .otp-input {
+            width: 60px;
+            padding: 12px;
+            text-align: center;
+            font-size: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
@@ -308,6 +322,7 @@ body {
     </style>
 </head>
 <body class="">
+
     <div class="content">
         <div class="d-flex justify-content-center">
             <div class="card" style="background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);">
@@ -317,7 +332,7 @@ body {
                                 <span>🏛️</span>
                             </div>
 
-                            <h1 class="title">Desa Girimukti</h1>
+                            <h1 class="title" style="text-align: center;">Desa Girimukti</h1>
                             <p class="subtitle">
                                 Memanfaatkan sistem dan mengolah administrasi
                                 dengan pembaharuan sistem yang memungkinkan
@@ -349,27 +364,52 @@ body {
                             @endif
                             {{-- End Flasher --}}
 
-                            <div class="login-section">
-                                <h2 class="login-title">Login</h2>
-                                <p class="login-desc">Masuk menggunakan akun yang terdaftar</p>
+                            <div id="LoginFormBox">
+                                <div class="login-section">
+                                    <h2 class="login-title" style="text-align: center;">Login</h2>
+                                    <p class="login-desc" style="text-align: center;">Masuk menggunakan akun yang terdaftar</p>
+                                </div>
+
+                                <form id="loginForm" action="{{ route('login_post') }}" method="POST" class="login-form">
+                                    @csrf
+                                    {{-- <div class="form-group">
+                                        <span class="icon">👤</span>
+                                        <input type="text" name="username" id="username" placeholder="Username / No. HP" required>
+                                    </div> --}}
+
+                                    <div class="form-group">
+                                        <span class="icon">👤</span>
+                                        <input type="text" name="email" id="email" placeholder="Email / No. HP" required>
+                                    </div>
+
+                                    {{-- <div class="form-group password-group">
+                                        <span class="icon">🔒</span>
+                                        <input type="password" name="password" id="password" placeholder="Password" required>
+                                        <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                                    </div> --}}
+
+                                    {{-- <button type="submit" class="login-btn">Login</button> --}}
+                                    <button type="button" id="Lanjutkan" class="login-btn">Login</button>
+                                </form>
                             </div>
 
-                            <form id="loginForm" action="{{ route('login_post') }}" method="POST" class="login-form">
-                                @csrf
-                                <div class="form-group">
-                                    <span class="icon">👤</span>
-                                    <input type="text" name="username" id="username" placeholder="Username / No. HP" required>
-                                </div>
+                            <div id="otpForm" style="display:none;">
+                                <center>
+                                <h2><b>Masukkan OTP</b></h2>
+                                <p>Kode OTP telah dikirim (contoh: 1234)</p><br>
 
-                                <div class="form-group password-group">
-                                    <span class="icon">🔒</span>
-                                    <input type="password" name="password" id="password" placeholder="Password" required>
-                                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                                <div class="otp-container">
+                                    <input maxlength="1" class="otp-input" oninput="moveNext(this, 'otp2')" onkeydown="handleBackspace(event, null, 'otp1')" id="otp1">
+                                    <input maxlength="1" class="otp-input" oninput="moveNext(this, 'otp3')" onkeydown="handleBackspace(event, 'otp1', 'otp2')" id="otp2">
+                                    <input maxlength="1" class="otp-input" oninput="moveNext(this, 'otp4')" onkeydown="handleBackspace(event, 'otp2', 'otp3')" id="otp3">
+                                    <input maxlength="1" class="otp-input" onkeydown="handleBackspace(event, 'otp3', 'otp4')" id="otp4">
                                 </div>
-
-                                <button type="submit" class="login-btn">Login</button>
-                            </form>
+                                </center>
+                                <br>
+                                <button class="login-btn" id="verifikasiOTP">Verifikasi</button>
+                            </div>
                         </div>
+                        <span>Buat akun jika tidak punya akun? <a href="{{ url('register') }}">Register</a></span>
                 </div>
             </div>
         </div>
@@ -381,6 +421,30 @@ body {
         </div>
     </div>
 
+    <!-- LOADING -->
+<div id="loading" style="
+    display:none;
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.6);
+    color:white;
+    font-size:20px;
+    text-align:center;
+    padding-top:20%;
+">
+    <div>Sedang memproses...</div>
+</div>
+
+<!-- NOTIFIKASI -->
+<div id="notif" style="
+    display:none;
+    position:fixed;
+    top:20px; right:20px;
+    padding:10px 15px;
+    background:green;
+    color:white;
+    border-radius:5px;">
+</div>
 
     <!-- jQuery -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
@@ -398,9 +462,140 @@ body {
             $('.alert').fadeOut('slow');
         }, 5000);
 
+
+        // Pindah ke kolom berikutnya setelah isi 1 digit
+        function moveNext(current, nextId) {
+            if (current.value.length === 1) {
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        // Tekan backspace → kembali ke kolom sebelumnya
+        function movePrev(e, prevId) {
+            if (e.key === "Backspace" && e.target.value === "") {
+                document.getElementById(prevId).focus();
+            }
+        }
+
+        function handleBackspace(e, prevId, currentId) {
+            if (e.key === "Backspace") {
+                let current = document.getElementById(currentId);
+
+                // Jika masih ada isi → hapus dulu tapi jangan pindah
+                if (current.value !== "") {
+                    current.value = "";
+                    e.preventDefault();
+                    return;
+                }
+
+                // Jika kolom kosong dan ada kolom sebelumnya → pindah & hapus sebelumnya
+                if (prevId) {
+                    let prev = document.getElementById(prevId);
+                    prev.value = "";     // hapus isi sebelumnya
+                    prev.focus();        // pindah fokus
+                    e.preventDefault();
+                }
+            }
+        }
+
+
+        // fungsi notif
+        function showNotif(text, color = "green") {
+            $("#notif")
+                .text(text)
+                .css("background", color)
+                .fadeIn();
+
+            setTimeout(() => $("#notif").fadeOut(), 2000);
+        }
+
         // Enhanced sidebar menu active state
         $(document).ready(function() {
             // Add active class to current menu item
+            $('#Lanjutkan').click(function() {
+                const email = $('#email').val();
+
+                $("#loading").show();
+                $.ajax({
+                    url: "/register/send-otp",
+                    type: "POST",
+                    data: {
+                        email: email,
+                        type: 'login',
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function (res) {
+                        $("#loading").hide();
+                        if (res.status === "ok") {
+                            $("#LoginFormBox").hide();
+                            $("#otpForm").show();
+                            $("#otp1").focus();
+                        } else if (res.status === "no") {
+                            alert(res.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            $("#loading").hide();
+                            // Laravel validation errors
+                            let errors = xhr.responseJSON.errors;
+                            let message = "";
+
+                            if (errors.nama) message += errors.nama[0] + "\n";
+                            if (errors.email) message += errors.email[0] + "\n";
+                            if (errors.telepon) message += errors.telepon[0] + "\n";
+
+                            alert(message); // tampilkan error
+                        } else {
+                            alert("Terjadi kesalahan server!");
+                        }
+                    }
+                });
+            });
+
+            $('#verifikasiOTP').click(function() {
+                $("#loading").show();
+                const nama = $('#nama').val();
+                const email = $('#email').val();
+                const telepon = $('#telepon').val();
+            const otp =
+                    $("#otp1").val() +
+                    $("#otp2").val() +
+                    $("#otp3").val() +
+                    $("#otp4").val();
+
+                $.ajax({
+                    url: "/register/check-otp",
+                    type: "POST",
+                    data: {
+                        email: email,
+
+                        otp: otp,
+                        type: "login",
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(res) {
+                        $("#loading").hide();
+
+
+                        if (res.status === "ok") {
+                            console.log(res);
+                            // alert("Registrasi berhasil!");
+                            showNotif(res.message);
+
+                            setTimeout(() => {
+                                window.location.href = "{{ url('home') }}";
+                            }, 2000);
+                        } else {
+                            // alert("OTP salah!");
+                            showNotif(res.message);
+                        }
+                    }
+                });
+            });
+
+
+
             var url = window.location.href;
             $('.nav-sidebar a').each(function() {
                 if (this.href === url) {
