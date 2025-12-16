@@ -533,22 +533,6 @@
                         } else if (res.status === "no") {
                             alert(res.message);
                         }
-                    },
-                    error: function (xhr) {
-                        if (xhr.status === 422) {
-                            $("#loading").hide();
-                            // Laravel validation errors
-                            let errors = xhr.responseJSON.errors;
-                            let message = "";
-
-                            if (errors.nama) message += errors.nama[0] + "\n";
-                            if (errors.email) message += errors.email[0] + "\n";
-                            if (errors.telepon) message += errors.telepon[0] + "\n";
-
-                            alert(message); // tampilkan error
-                        } else {
-                            alert("Terjadi kesalahan server!");
-                        }
                     }
                 });
             });
