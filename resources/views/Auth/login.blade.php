@@ -517,7 +517,7 @@
 
                 $("#loading").show();
                 $.ajax({
-                    url: "/register/send-otp",
+                    url: "{{ url('register/send-otp') }}",
                     type: "POST",
                     data: {
                         email: email,
@@ -565,7 +565,7 @@
                     $("#otp4").val();
 
                 $.ajax({
-                    url: "/register/check-otp",
+                    url: "{{ url('register/check-otp') }}",
                     type: "POST",
                     data: {
                         email: email,
