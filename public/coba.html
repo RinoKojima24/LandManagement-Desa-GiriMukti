@@ -1,53 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <title>Contoh GeoJSON + Leaflet</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    #map { height: 90vh; width: 100%; }
-  </style>
+<meta charset="UTF-8">
+<title>GeoJSON ke Denah SVG</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #eee;
+    padding: 20px;
+  }
+  #output {
+    background: white;
+    display: inline-block;
+    padding: 10px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  }
+</style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    // buat map
-    const map = L.map('map').setView([0, 0], 2);
+<h3>Denah Bidang Tanah</h3>
+<div id="output"></div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OSM'
-    }).addTo(map);
+<script>
+/* =========================
+   DATA GEOJSON
+   ========================= */
 
-    // load GeoJSON
-    fetch('geojson_test.geojson')
-      .then(res => res.json())
-      .then(geojson => {
-        const layer = L.geoJSON(geojson, {
-          style: feature => ({
-            color: '#3388ff',
-            weight: 2,
-            fillOpacity: 0.4
-          }),
-          onEachFeature: (feature, layer) => {
-            // popup menampilkan atribut (dbf fields)
-            if (feature.properties) {
-              const props = feature.properties;
-              let html = '<table>';
-              for (const key in props) {
-                html += `<tr><th>${key}</th><td>${props[key]}</td></tr>`;
-              }
-              html += '</table>';
-              layer.bindPopup(html);
-            }
-          }
-        }).addTo(map);
+// Polygon Tanah
+const polygonGeoJSON = {
+  type: "Feature",
+  geometry: {
+    type: "Polygon",
+    coordinates: [[
+      [110.40423, -7.77431],
+      [110.40510, -7.77420],
+      [110.40500, -7.77500],
+      [110.40410, -7.77490],
+      [110.40423, -7.77431]
+    ]]
+  }
+};
 
-        // zoom ke bounds layer
-        map.fitBounds(layer.getBounds());
-      })
-      .catch(err => console.error('Gagal load GeoJSON:', err));
-  </script>
+// Jalan
+const roadGeoJSON = {
+  type: "Feature",
+  geometry: {
+    type: "LineString",
+    coordinates: [
+      [110.40530, -7.77410],
+      [110.40580, -7.77480]
+    ]
+  },
+  properties: {
+    name: "JL N STRATA"
+  }
+};
+
+/* =========================
+   FUNCTION RENDER SVG
+   ========================= */
+
+function geojsonToDenahSVG(polygon, road) {
+  const padding = 50;
+  const width = 500;
+  const height = 500;
+
+  const allCoords = [
+    ...polygon.geometry.coordinates[0],
+    ...road.geometry.coordinates
+  ];
+
+  const lats = allCoords.map(c => c[1]);
+  const lngs = allCoords.map(c => c[0]);
+
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  function project([lng, lat]) {
+    const x = ((lng - minLng) / (maxLng - minLng)) * width + padding;
+    const y = height - ((lat - minLat) / (maxLat - minLat)) * height + padding;
+    return [x, y];
+  }
+
+  /* ===== POLYGON ===== */
+  const polyPoints = polygon.geometry.coordinates[0]
+    .map(c => project(c).join(","))
+    .join(" ");
+
+  /* ===== JALAN ===== */
+  const roadProjected = road.geometry.coordinates.map(project);
+  const roadPoints = roadProjected.map(p => p.join(",")).join(" ");
+
+  /* ===== HITUNG ROTASI TEKS ===== */
+  const p1 = roadProjected[0];
+  const p2 = roadProjected[roadProjected.length - 1];
+
+  const dx = p2[0] - p1[0];
+  const dy = p2[1] - p1[1];
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+  /* ===== POSISI LABEL ===== */
+  const mid = Math.floor(roadProjected.length / 2);
+  const [labelX, labelY] = roadProjected[mid];
+
+  return `
+<svg width="${width + padding*2}" height="${height + padding*2}"
+     viewBox="0 0 ${width + padding*2} ${height + padding*2}"
+     xmlns="http://www.w3.org/2000/svg">
+
+  <rect width="100%" height="100%" fill="#f2f2f2"/>
+
+  <!-- Jalan -->
+  <polyline points="${roadPoints}"
+            stroke="#aaa"
+            stroke-width="10"
+            fill="none"/>
+  <polyline points="${roadPoints}"
+            stroke="#666"
+            stroke-width="2"
+            fill="none"/>
+
+  <!-- Nama Jalan (ROTATE) -->
+  <text x="${labelX}" y="${labelY - 10}"
+        font-size="14"
+        fill="#000"
+        text-anchor="middle"
+        font-family="Arial"
+        transform="rotate(${angle} ${labelX} ${labelY})">
+    ${road.properties.name}
+  </text>
+
+  <!-- Polygon -->
+  <polygon points="${polyPoints}"
+           fill="none"
+           stroke="#000"
+           stroke-width="2"/>
+
+</svg>`;
+}
+
+
+/* =========================
+   RENDER KE HALAMAN
+   ========================= */
+
+document.getElementById("output").innerHTML =
+  geojsonToDenahSVG(polygonGeoJSON, roadGeoJSON);
+
+</script>
+
 </body>
 </html>

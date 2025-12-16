@@ -46,7 +46,7 @@
                 </div>
 
                 <!-- Filter Buttons Row -->
-                <div class="grid grid-cols-3 gap-2 mb-4">
+                {{-- <div class="grid grid-cols-3 gap-2 mb-4">
                     <button type="button"
                             onclick="toggleFilter('newor')"
                             class="flex items-center justify-center space-x-2 px-3 py-2 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 hover:bg-amber-100 transition">
@@ -102,7 +102,7 @@
                             </option>
                         @endforeach
                     </select>
-                </div>
+                </div> --}}
 
                 <!-- Date Range -->
                 <div class="grid grid-cols-2 gap-3 mb-4">
@@ -281,7 +281,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Surat</th>
+                        {{-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Surat</th> --}}
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -292,12 +292,12 @@
                     @forelse([...$surat_keterangan, ...$surat_permohonan] as $surat)
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ $surat->nama_lengkap }}</div>
+                            <div class="text-sm font-medium text-gray-900">{{ $surat->nama_lengkap ?? $surat->nama }}</div>
                             <div class="text-sm text-gray-500">{{ $surat->nik }}</div>
                         </td>
-                        <td class="px-6 py-4">
+                        {{-- <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">{{ $surat->jenis_surat_lengkap }}</div>
-                        </td>
+                        </td> --}}
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
                                 {{ property_exists($surat, 'keperluan') ? 'Keterangan' : 'Permohonan' }}
@@ -316,7 +316,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a href="{{ url('berkas/'.$surat->id_permohonan.'?tipe_surat='.$_GET['tipe_surat']) }}"
+                            <a href="{{ url('berkas/'.($surat->id_permohonan ?? $surat->id).'?tipe_surat='.$_GET['tipe_surat']) }}"
                                class="text-teal-600 hover:text-teal-900 font-medium">
                                 Lihat Detail
                             </a>

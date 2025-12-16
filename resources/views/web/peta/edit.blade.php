@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Leaflet Polygon Tools</title>
+    <title>Edit Data Peta Tanah</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
@@ -171,9 +171,14 @@ input[type="file"] {
         <button class="tool-btn" id="togglePanelBtn">Data Tanah</button>
         <button class="tool-btn" onclick="goToMyLocation()">📍 Lokasi Saya</button>
         <button class="tool-btn" onclick="addMarkerMode()">📌 Tambah Marker</button>
+        <hr>
         <button class="tool-btn" onclick="polygonMode()">⬛ Polygon Mode</button>
         <button class="tool-btn" onclick="finishPolygon()">✔ Selesai Polygon</button>
         <button class="tool-btn" onclick="deletePolygon()">🗑 Hapus Polygon</button>
+                <hr>
+        <button class="tool-btn" onclick="jalanMode()">🛣 Jalan Mode</button>
+        <button class="tool-btn" onclick="finishJalan()">✔ Selesai Jalan</button>
+        <button class="tool-btn" onclick="deleteJalan()">🗑 Hapus Jalan</button>
     </div>
 
 
@@ -203,55 +208,380 @@ input[type="file"] {
                 @endif
 
                 <div class="row">
+                    <div class="form-group col-sm-12" style="display: none;">
+                        <label for="">Jalan (Polyline)</label>
+                        <textarea
+                            id="jalan"
+                            name="titik_kordinat_jalan"
+                            rows="6"
+                            class="form-control"
+                            readonly
+                            placeholder="lat,lng per baris"
+                        ></textarea>
+                    </div>
                     <div class="form-group col-sm-12">
-                        <label for="">Pilih Warga<span class="required">*</span></label>
-                        <select name="user_id" id="user_id" class="form-control">
-                            {{-- @php
-                                $jenis_surat = [
-                                    'skt' => 'Surat Keterangan Tanah (SKT)',
-                                    'sporadik' => 'Surat Pernyataan Penguasaan Fisik (Sporadik)',
-                                    'waris' => 'Surat Keterangan Waris Tanah',
-                                    'hibah' => 'Surat Hibah Tanah',
-                                    'jual_beli' => 'Surat Jual Beli Tanah',
-                                    'tidak_sengketa' => 'Surat Keterangan Tidak Sengketa',
-                                    'permohonan' => 'Surat Permohonan Penggarapan / Pemanfaatan Tanah Desa',
-                                    'lokasi' => 'Surat Keterangan Lokasi Tanah',
-                                ]
-                            @endphp --}}
-                            @foreach ($warga as $a)
-                                <option value="{{ $a->id }}" {{ old('user_id', $peta->user_id) == $a->id ? 'selected' : '' }}>{{ $a->nama_petugas }}</option>
-                            @endforeach
+                        <label for="">Tanggal Pengukuran</label>
+                        <input type="datetime-local" name="tanggal_pengukuran" id="tanggal_pengukuran" value="{{ old('tanggal_pengukuran', $peta->tanggal_pengukuran) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Skala</label>
+                        <input type="text" name="skala" id="skala" value="{{ old('skala', $peta->skala) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Nama Jalan</label>
+                        <input type="text" name="nama_jalan" id="nama_jalan" value="{{ old('nama_jalan', $peta->nama_jalan) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Penjelasan</label>
+                        <textarea name="penjelasan" id="penjelasan" class="form-control"  cols="30" rows="10">{{ old('penjelasan', $peta->penjelasan) }}</textarea>
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Alamat</label>
+                        <textarea name="alamat" id="alamat" class="form-control"  cols="30" rows="10">{{ old('alamat', $peta->alamat) }}</textarea>
+                    </div>
+
+                    <div class="form-group col-sm-12">
+                        <br>
+                        <select name="opsi" class="form-control" id="opsi">
+                            <option value="0">Pendaftaran Pertama</option>
+                            <option value="1">Pendaftaran Peralihan Hak</option>
+                            <option value="2">Surat Ukur</option>
                         </select>
                     </div>
-                    <div class="form-group col-sm-12">
-                        <label for="">Titik Kordinat<span class="required">*</span></label>
-                        <input type="text" name="titik_kordinat" readonly id="marker" value="{{ old('titik_kordinat', $peta->titik_kordinat) }}" placeholder="lat,lng">
-                        <textarea id="polygon" style="display: none;" name="titik_kordinat_polygon" rows="6" placeholder="Polygon coordinates"></textarea>
+                </div>
+                <div id="pendaftaran_pertama_form" class="row">
+                    <div class="form-group col-sm-12 col-md-12">
+                        <center><h1>Pendaftaran Pertama</h1></center>
                     </div>
-                    <div class="form-group col-sm-12">
+                    <div class="form-group col-sm-12 col-md-12">
+                    <hr>
+                    <center><h3>HAK MILIK</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <input type="text" name="hak" value="{{ old('hak', $peta->PendaftaranPertama->hak) }}" class="form-control" placeholder="Hak" id="hak">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <input type="text" name="nomor" class="form-control" value="{{ old('nomor', $peta->PendaftaranPertama->nomor) }}" placeholder="Nomor" id="nomor">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <input type="text" name="desa_kel" class="form-control" value="{{ old('desa_kel', $peta->PendaftaranPertama->desa_kel) }}" placeholder="Desa Kelurahan" id="desa_kel">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <input type="date" name="tanggal_berakhirnya_hak" class="form-control" value="{{ old('tanggal_berakhirnya_hak', $peta->PendaftaranPertama->tanggal_berakhirnya_hak) }}" placeholder="Tanggal Berakhirnya Hak" id="tanggal_berakhirnya_hak">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                    <hr>
+                    <center><h3>NIB</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <input type="text" name="nib" class="form-control"  value="{{ old('nib', $peta->PendaftaranPertama->nib) }}" placeholder="NIB" id="nib">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <input type="text" name="letak_tanah" class="form-control"  value="{{ old('letak_tanah', $peta->PendaftaranPertama->letak_tanah) }}" placeholder="Letak Tanah" id="letak_tanah">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                    <hr>
+                    <center><h3>ASAL HAK</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <input type="text" name="konversi" value="{{ old('nib', $peta->PendaftaranPertama->konversi) }}" class="form-control" placeholder="Konversi" id="konversi">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <input type="text" name="pemberian_hak" value="{{ old('nib', $peta->PendaftaranPertama->pemberian_hak) }}" class="form-control" placeholder="Pemberian Hak" id="pemberian_hak">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <select name="pemecahan" class="form-control" id="pemecahan">
+                            <option value="0" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak) == "0" ? 'selected' : ''}}>Pemecahan</option>
+                            <option value="1" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak) == "1" ? 'selected' : ''}}>Pemisahan</option>
+                            <option value="2" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak) == "2" ? 'selected' : '' }}>Penggabungan Bidang</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                    <hr>
+                    <center><h3>DASAR PENDAFTARAN</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="">Daftar Isian 202</label>
+                        <input type="date" name="tgl_konversi" value="{{ old('tgl_konversi', $peta->PendaftaranPertama->tgl_konversi) }}" class="form-control" placeholder="Tanggal Konversi" id="tgl_konversi">
+                        <input type="text" name="no_konversi" value="{{ old('no_konversi', $peta->PendaftaranPertama->no_konversi) }}" class="form-control" placeholder="Nomor Konversi" id="no_konversi">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="">Surat Keputusan</label>
+                        <input type="date" name="tgl_pemberian_hak" value="{{ old('tgl_pemberian_hak', $peta->PendaftaranPertama->tgl_pemberian_hak) }}" class="form-control" placeholder="Tanggal Keputusan" id="tgl_pemberian_hak">
+                        <input type="text" name="no_pemberian_hak" value="{{ old('no_pemberian_hak', $peta->PendaftaranPertama->no_pemberian_hak) }}" class="form-control" placeholder="Nomor Keputusan" id="no_pemberian_hak">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label for="">Permohonan Pemecahan / Pemisahan / Penggabungan Bidang</label>
+                        <input type="date" name="tgl_pemecahan" value="{{ old('tgl_pemecahan', $peta->PendaftaranPertama->tgl_pemecahan) }}" class="form-control" placeholder="Tanggal Permohonan Pemecahan / Pemisahan / Penggabungan Bidang" id="tgl_pemecahan">
+                        <input type="text" name="no_pemecahan" value="{{ old('no_pemecahan', $peta->PendaftaranPertama->no_pemecahan) }}" class="form-control" placeholder="Nomor Permohonan Pemecahan / Pemisahan / Penggabungan Bidang" id="no_pemecahan">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <hr>
+                        <center><h3>SURAT UKUR</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <input type="date" name="tgl_surat_ukur" value="{{ old('tgl_surat_ukur', $peta->PendaftaranPertama->tgl_surat_ukur) }}" class="form-control" placeholder="Tanggal" id="tgl_surat_ukur">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <input type="text" name="no_surat_ukur" value="{{ old('no_surat_ukur', $peta->PendaftaranPertama->no_surat_ukur) }}" class="form-control" placeholder="No." id="no_surat_ukur">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-4">
+                        <input type="text" name="luas_surat_ukur" value="{{ old('luas_surat_ukur', $peta->PendaftaranPertama->luas_surat_ukur) }}" class="form-control" placeholder="Luas" id="luas_surat_ukur">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <hr>
+                        <center><h3>NAMA PEMEGANG HAK</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <input type="text" name="nama_pemegang_hak" value="{{ old('nama_pemegang_hak', $peta->PendaftaranPertama->nama_pemegang_hak) }}" class="form-control" placeholder="Nama Pemegang Hak" id="nama_pemegang_hak">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-6">
+                        <input type="date" name="tanggal_lahir_akta_pendirian" value="{{ old('tanggal_lahir_akta_pendirian', $peta->PendaftaranPertama->tanggal_lahir_akta_pendirian) }}" class="form-control" placeholder="Tanggal lahir / akta pendirian" id="tanggal_lahir_akta_pendirian">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <hr>
+                        <center><h3>PENUNJUK</h3></center>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <textarea name="petunjuk" id="petunjuk" class="form-control" cols="30" rows="2">{{ old('petunjuk', $peta->PendaftaranPertama->petunjuk) }}</textarea>
+                    </div>
+                </div>
+                <br>
+                <div id="pendaftaran_peralihan_hak_form" class="row container" style="display:none;">
+                        <div class="form-group col-sm-12 col-md-12">
+                            <center><h3>Pendaftaran Peralihan Hak. Pembebanan dan Pencatatan Lainnya</h3></center>
+                        </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <center>
+                            <button type="button" id="addRow" class="btn btn-primary mb-3">+ Tambah Baris</button>
+                        </center>
+                    </div>
+
+                    <div id="multipleRows">
+
+                        @foreach ($peta->PendaftaranPeralihan as $index => $b)
+                            <div class="row mt-3 singleRow" id="row_{{$index + 1}}">
+                                <div class="form-group col-sm-12 col-md-4">
+                                    <label>Sebab perubahan Tanggal Pendaftaran No</label>
+                                    <input type="text" name="sebab[]" class="form-control" value="{{ $b->sebab }}" placeholder="Sebab perubahan">
+                                </div>
+
+                                <div class="form-group col-sm-12 col-md-4">
+                                    <label>Nama yang berhak dan Pemegang hak lainnya</label>
+                                    <input type="text" name="nama[]" class="form-control" value="{{ $b->nama }}" placeholder="Nama">
+                                </div>
+
+                                <div class="form-group col-sm-12 col-md-3">
+                                    <label>Tanda Tangan Kepala Kantor dan Cap</label>
+                                    <input type="text" name="tanda_tangan[]" class="form-control"  readonly value="{{ $b->tanda_tangan }}">
+                                </div>
+
+                                <div class="form-group col-sm-12 col-md-1">
+                                    <label>&nbsp;</label>
+                                    <button type="button" class="btn btn-danger form-control" onclick="removeRow('{{$index + 1}}')">X</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div id="surat_ukur_form" class="row container" style="display:none;">
+                    <div class="form-group col-sm-12 col-md-12">
+                        <h2 style="text-align: center;">Surat Ukur</h2>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <label for="">Nomor</label>
+                        <input type="text" name="nomor_surat" value="{{ $peta->SuratUkur->nomor }}" placeholder="Nomor" id="nomor_surat" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-12 col-md-12">
+                        <hr>
+                    </div>
+                    <div class="row container">
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="provinsi" id="provinsi" value="{{ $peta->SuratUkur->provinsi }}" placeholder="Provinsi" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="kabupaten" id="kabupaten" value="{{ $peta->SuratUkur->kabupaten }}" placeholder="Kabupaten / Kota" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="kecamatan" id="kecamatan" value="{{ $peta->SuratUkur->kecamatan }}" placeholder="Kecamatan" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="desa" id="desa" value="{{ $peta->SuratUkur->desa }}" placeholder="Desa / Kelurahan" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row container">
+                        <div class="form-group col-sm-12 col-md-12">
+                            <hr>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="peta" id="peta" value="{{ old('peta', $peta->SuratUkur->desa) }}" placeholder="Peta" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="nomor_peta" id="nomor_peta" value="{{ old('nomor_peta', $peta->SuratUkur->nomor_peta) }}" placeholder="Nomor Peta" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="lembar" id="lembar" value="{{ old('lembar', $peta->SuratUkur->lembar) }}" placeholder="Lembar" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-3">
+                            <input type="text" name="kotak" id="kotak" value="{{ old('kotak', $peta->SuratUkur->kotak) }}" placeholder="Kotak" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row container">
+                        <div class="form-group col-sm-12 col-md-12">
+                            <hr>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-12">
+                            <label for="">Keadaan Tanah</label>
+                            <textarea name="keadaan_tanah" id="keadaan_tanah" class="form-control" cols="30" rows="2" >{{ old('keadaan_tanah', $peta->SuratUkur->keadaan_tanah) }}</textarea>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-12">
+                            <label for="">Tanda Tanda Batas</label>
+                            <textarea name="tanda_tanda_batas" id="tanda_tanda_batas" class="form-control" cols="30" rows="2" >{{ old('tanda_tanda_batas', $peta->SuratUkur->tanda_tanda_batas) }}</textarea>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-12">
+                            <label for="">Penunjukan dan penetapan batas</label>
+                            <textarea name="penunjukan_dan_penetapan_batas" id="penunjukan_dan_penetapan_batas" class="form-control" cols="30" rows="2" >{{ old('penunjukan_dan_penetapan_batas', $peta->SuratUkur->penunjukan_dan_penetapan_batas) }}</textarea>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-12">
+                            <label for="">Hal lain-lain</label>
+                            <textarea name="hal_lain_lain" id="hal_lain_lain" class="form-control" cols="30" rows="2" >{{ old('hal_lain_lain', $peta->SuratUkur->hal_lain_lain) }}</textarea>
+                        </div>
+                    </div>
+                    <div class="row container">
+                        <div class="form-group col-sm-12 col-md-12">
+                            <hr>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="date" name="tgl_daftar_isian_208" value="{{ old('tgl_daftar_isian_208', $peta->SuratUkur->tgl_daftar_isian_208) }}" id="tgl_daftar_isian_208" placeholder="Tanggal Daftar Isian 208" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="text" name="no_daftar_isian_208" value="{{ old('no_daftar_isian_208', $peta->SuratUkur->no_daftar_isian_208) }}" id="no_daftar_isian_208" placeholder="Nomor Daftar Isian 208" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="date" name="tgl_daftar_isian_302" value="{{ old('tgl_daftar_isian_302', $peta->SuratUkur->tgl_daftar_isian_302) }}" id="tgl_daftar_isian_302" placeholder="Tanggal Daftar Isian 302" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="text" name="no_daftar_isian_302" value="{{ old('no_daftar_isian_302', $peta->SuratUkur->no_daftar_isian_302) }}" id="no_daftar_isian_302" placeholder="Nomor Daftar Isian 302" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="date" name="tgl_daftar_isian_307" value="{{ old('tgl_daftar_isian_307', $peta->SuratUkur->tgl_daftar_isian_307) }}" id="tgl_daftar_isian_307" placeholder="Tanggal Daftar Isian 307" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="text" name="no_daftar_isian_307" value="{{ old('no_daftar_isian_307', $peta->SuratUkur->no_daftar_isian_307) }}" id="no_daftar_isian_307" placeholder="Nomor Daftar Isian 307" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-12">
+                            <label for="">Tanggal Penomoran Surat Ukur</label>
+                            <input type="date" name="tanggal_penomoran_surat_ukur" value="{{ old('tanggal_penomoran_surat_ukur', $peta->SuratUkur->tanggal_penomoran_surat_ukur) }}" id="tanggal_penomoran_surat_ukur" placeholder="Tanggal Penomoran Surat Ukur" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row container">
+                        <div class="form-group col-sm-12 col-md-12">
+                            <hr>
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="text" name="nomor_surat_ukur" value="{{ old('nomor_surat_ukur', $peta->SuratUkur->nomor_surat_ukur) }}" id="nomor_surat_ukur" placeholder="Nomor Surat Ukur" class="form-control">
+                        </div>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <input type="text" name="nomor_hak" value="{{ old('nomor_hak', $peta->SuratUkur->nomor_hak) }}" id="nomor_hak" placeholder="Nomor Hak" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row container">
+                        <div class="form-group col-sm-12 col-md-12">
+                            <hr><h3>Dikeluarkan Surat Ukur</h3>
+                        </div>
+
+                        <button type="button" id="addSuratUkur" class="btn btn-primary mb-3">
+                            + Tambah Surat Ukur
+                        </button>
+                        <div id="suratUkurContainer">
+                            @foreach ($peta->SuratUkur->DikeluarkanSuratUkur as $index => $b)
+                                <div class="row mt-3 singleRow" id="surat_row_{{ $index + 1 }}">
+
+                                    <div class="form-group col-sm-12 col-md-2">
+                                        <label>Tanggal</label>
+                                        <input type="date" value="{{ $b->tanggal }}" name="tanggal_surat_ukur[]" class="form-control">
+                                    </div>
+
+                                    <div class="form-group col-sm-12 col-md-2">
+                                        <label>Nomor</label>
+                                        <input type="text" value="{{ $b->nomor }}" name="nomor_surat_ukur_all[]" class="form-control">
+                                    </div>
+
+                                    <div class="form-group col-sm-12 col-md-2">
+                                        <label>Luas</label>
+                                        <input type="text" value="{{ $b->luas }}" name="luas_surat_ukur_all[]" class="form-control">
+                                    </div>
+
+                                    <div class="form-group col-sm-12 col-md-2">
+                                        <label>Nomor Hak</label>
+                                        <input type="text" value="{{ $b->nomor_hak }}" name="nomor_hak_all[]" class="form-control">
+                                    </div>
+
+                                    <div class="form-group col-sm-12 col-md-2">
+                                        <label>Sisa Luas</label>
+                                        <input type="text" value="{{ $b->sisa_luas }}" name="sisa_luas[]" class="form-control">
+                                    </div>
+
+                                    <div class="form-group col-sm-12 col-md-1">
+                                        <label>&nbsp;</label>
+                                        <button type="button" class="btn btn-danger form-control" onclick="removeSuratRow('{{ $index + 1 }}')">X</button>
+                                    </div>
+
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+
+
+
+                <div class="row">
+
+                    {{-- <div class="form-group col-sm-12">
+                        <label for="">Pilih Warga<span class="required">*</span></label>
+                        <select name="user_id" id="user_id" class="form-control">
+                            @foreach ($warga as $a)
+                                <option value="{{ $a->id }}" {{ old('user_id') == $a->id ? 'selected' : '' }}>{{ $a->nama_petugas }}</option>
+                            @endforeach
+                        </select>
+                    </div> --}}
+                    <div class="form-group col-sm-6">
+                        <label for="">Titik Kordinat<span class="required">*</span></label>
+                        <input type="hidden" name="user_id" value="{{ $warga->id }}">
+
+                        <input type="text" name="titik_kordinat" readonly id="marker" value="{{ old('titik_kordinat', $peta->titik_kordinat) }}" placeholder="lat,lng">
+                        <textarea id="polygon" style="display: none;" id="titik_kordinat_polygon" name="titik_kordinat_polygon" rows="6" placeholder="Polygon coordinates">{{ old('tanggal_pengukuran') }}</textarea>
+                    </div>
+                    {{-- <div class="form-group col-sm-12">
                         <label for="">Tanggal Pengukuran<span class="required">*</span></label>
-                        <input type="date" name="tanggal_pengukuran" placeholder="Tanggal Pengukuran" value="{{ old('tanggal_pengukuran', $peta->tanggal_pengukuran) }}" class="form-control" id="tanggal_pengukuran">
+                        <input type="date" name="tanggal_pengukuran" placeholder="Tanggal Pengukuran" value="{{ old('tanggal_pengukuran') }}" class="form-control" id="tanggal_pengukuran">
                     </div>
                     <div class="form-group col-sm-12">
                         <label for="">Peruntukan<span class="required">*</span></label>
-                        <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan', $peta->peruntukan) }}</textarea>
+                        <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan') }}</textarea>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="">Status<span class="required">*</span></label>
-                        <input type="text" name="status" placeholder="Status" class="form-control" value="{{ old('status', $peta->status) }}" id="status">
+                        <input type="text" name="status" placeholder="Status" class="form-control" value="{{ old('status') }}" id="status">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="">Panjang<span class="required">*</span></label>
-                        <input type="number" name="panjang" placeholder="Panjang" class="form-control" value="{{ old('panjang', $peta->panjang) ?? 0 }}" id="panjang">
+                        <input type="number" name="panjang" placeholder="Panjang" class="form-control" value="{{ old('panjang') ?? 0 }}" id="panjang">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="">Lebar<span class="required">*</span></label>
-                        <input type="number" name="lebar" placeholder="Lebar" class="form-control" value="{{ old('lebar', $peta->lebar) ?? 0 }}" id="lebar">
+                        <input type="number" name="lebar" placeholder="Lebar" class="form-control" value="{{ old('lebar') ?? 0 }}" id="lebar">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="">Luas<span class="required">*</span></label>
-                        <input type="number" name="luas" placeholder="Luas" readonly class="form-control" value="{{ old('luas', $peta->luas) ?? 0 }}" id="luas">
+                        <input type="number" name="luas" placeholder="Luas" readonly class="form-control" value="{{ old('luas') ?? 0 }}" id="luas">
                     </div>
+                     --}}
                     <div class="form-group col-sm-12 col-md-6">
 
                         <div class="upload-section">
@@ -269,13 +599,12 @@ input[type="file"] {
                                     id="foto_peta"
                                     name="foto_peta"
                                     accept="image/jpeg,image/jpg,image/png,.pdf"
+
                                 >
                             </div>
                         </div>
                     </div>
-
-
-                    <div class="form-group col-sm-12 col-md-6">
+                    <div class="form-group col-sm-12 col-md-12">
                         <img src="{{ url('storage/'.$peta->foto_peta) }}" alt="">
                     </div>
                 </div>
@@ -288,6 +617,114 @@ input[type="file"] {
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.getElementById('opsi').addEventListener('change', function () {
+            const value = this.value;
+
+            // semua form disembunyikan dulu
+            document.getElementById('pendaftaran_pertama_form').style.display = 'none';
+            document.getElementById('pendaftaran_peralihan_hak_form').style.display = 'none';
+            document.getElementById('surat_ukur_form').style.display = 'none';
+
+            // tampilkan sesuai pilihan
+            if (value == '0') {
+                document.getElementById('pendaftaran_pertama_form').style.display = 'block';
+            } else if (value == '1') {
+                document.getElementById('pendaftaran_peralihan_hak_form').style.display = 'block';
+            } else if (value == '2') {
+                document.getElementById('surat_ukur_form').style.display = 'block';
+            }
+        });
+    </script>
+    <script>
+        let index = parseInt("{{ $peta->PendaftaranPeralihan }}");
+
+        document.getElementById('addRow').addEventListener('click', function () {
+            index++;
+
+            const row = `
+                <div class="row mt-3 singleRow" id="row_${index}">
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label>Sebab perubahan Tanggal Pendaftaran No</label>
+                        <input type="text" name="sebab[]" class="form-control" placeholder="Sebab perubahan">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-4">
+                        <label>Nama yang berhak dan Pemegang hak lainnya</label>
+                        <input type="text" name="nama[]" class="form-control" placeholder="Nama">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label>Tanda Tangan Kepala Kantor dan Cap</label>
+                        <input type="text" name="tanda_tangan[]" class="form-control" readonly value="Mohon diajukan!">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-1">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-danger form-control" onclick="removeRow(${index})">X</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('multipleRows').insertAdjacentHTML('beforeend', row);
+        });
+
+        function removeRow(id) {
+            document.getElementById('row_' + id).remove();
+        }
+    </script>
+
+    <script>
+        let suratIndex = parseInt("{{ $peta->SuratUkur->DikeluarkanSuratUkur }}");;
+
+        document.getElementById('addSuratUkur').addEventListener('click', function () {
+            suratIndex++;
+
+            const row = `
+                <div class="row mt-3 singleRow" id="surat_row_${suratIndex}">
+
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label>Tanggal</label>
+                        <input type="date" name="tanggal_surat_ukur[]" class="form-control">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label>Nomor</label>
+                        <input type="text" name="nomor_surat_ukur_all[]" class="form-control">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label>Luas</label>
+                        <input type="text" name="luas_surat_ukur_all[]" class="form-control">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label>Nomor Hak</label>
+                        <input type="text" name="nomor_hak_all[]" class="form-control">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-2">
+                        <label>Sisa Luas</label>
+                        <input type="text" name="sisa_luas[]" class="form-control">
+                    </div>
+
+                    <div class="form-group col-sm-12 col-md-1">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-danger form-control" onclick="removeSuratRow(${suratIndex})">X</button>
+                    </div>
+
+                </div>
+            `;
+
+            document.getElementById('suratUkurContainer').insertAdjacentHTML('beforeend', row);
+        });
+
+
+        function removeSuratRow(id) {
+            document.getElementById('surat_row_' + id).remove();
+        }
+    </script>
+
 
     <script>
         const panel = document.getElementById("inputPanel");
@@ -330,6 +767,11 @@ input[type="file"] {
 
         let tempLine = null;
         let finalPolygon = null;
+        let jalanActive = false;
+        let jalanPoints = [];
+        let tempJalanLine = null;
+        let tempPolygonLine = null;
+        let finalJalan = null;
 
         // ===== AUTO GPS =====
         function autoLocateOnLoad() {
@@ -406,6 +848,59 @@ input[type="file"] {
             }
         }
 
+        function jalanMode() {
+            polygonActive = false;
+            addMarkerActive = false;
+            jalanActive = true;
+
+            jalanPoints = [];
+
+            if (tempJalanLine) {
+                map.removeLayer(tempJalanLine);
+                tempJalanLine = null;
+            }
+
+            alert("Jalan Mode aktif: klik titik-titik jalan.");
+        }
+
+        function finishJalan() {
+            if (jalanPoints.length < 2) {
+                alert("Minimal 2 titik untuk jalan.");
+                return;
+            }
+
+            if (tempJalanLine) map.removeLayer(tempJalanLine);
+            if (finalJalan) map.removeLayer(finalJalan);
+
+            finalJalan = L.polyline(jalanPoints, {
+                color: "black",
+                weight: 4
+            }).addTo(map);
+
+            jalanActive = false;
+        }
+
+        function deleteJalan() {
+            if (finalJalan) {
+                map.removeLayer(finalJalan);
+                finalJalan = null;
+            }
+
+            if (tempJalanLine) {
+                map.removeLayer(tempJalanLine);
+                tempJalanLine = null;
+            }
+
+            jalanPoints = [];
+            jalanActive = false;
+
+            document.getElementById("jalan").value = "";
+            alert("Jalan berhasil dihapus.");
+        }
+
+
+
+
         let currentMarker = null;
 
         function addSingleMarker(latlng) {
@@ -442,38 +937,60 @@ input[type="file"] {
 
         let geo = L.geoJSON(geojsonData);
 
+
         geo.eachLayer(function(layer) {
-            if (layer.feature.geometry.type === "Polygon") {
+
+            const type = layer.feature.geometry.type;
+            const props = layer.feature.properties || {};
+
+            // =========================
+            // POLYGON (TANAH)
+            // =========================
+            if (type === "Polygon" && props.layer === "tanah") {
+
                 let coords = layer.feature.geometry.coordinates[0];
+
                 coords.forEach(c => {
-                    polygonPoints.push([c[1], c[0]]); // GeoJSON = lon,lat → Leaflet butuh lat,lon
+                    polygonPoints.push([c[1], c[0]]); // lon,lat → lat,lon
                 });
 
-
                 if (polygonPoints.length > 1) {
-                    if (tempLine) map.removeLayer(tempLine);
+                    if (tempPolygonLine) map.removeLayer(tempPolygonLine);
 
-                    tempLine = L.polyline(polygonPoints, {
+                    tempPolygonLine = L.polyline(polygonPoints, {
                         color: "blue",
-                        dashArray: "5, 5"
+                        dashArray: "5,5"
                     }).addTo(map);
                 }
-                document.getElementById("polygon").value = polygonPoints.map(p => p.join(",")).join("\n");
 
-                // console.log(coords);
-                // coords.forEach(c => {
-                //     polygonCoords.push([c[1], c[0]]); // GeoJSON = lon,lat → Leaflet butuh lat,lon
-                // });
-
-                // // Buat marker editable
-                // polygonCoords.forEach((coord, i) => {
-                //     createEditableMarker(coord, i);
-                // });
-
-                // redrawPolygon();
-                // updatePolygonTextarea();
-                // map.fitBounds(polygonCoords);
+                document.getElementById("polygon").value =
+                    polygonPoints.map(p => p.join(",")).join("\n");
             }
+
+            // =========================
+            // JALAN (LINESTRING)
+            // =========================
+            if (type === "LineString" && props.layer === "road") {
+
+                let coords = layer.feature.geometry.coordinates;
+
+                coords.forEach(c => {
+                    jalanPoints.push([c[1], c[0]]);
+                });
+
+                if (jalanPoints.length > 1) {
+                    if (tempJalanLine) map.removeLayer(tempJalanLine);
+
+                    tempJalanLine = L.polyline(jalanPoints, {
+                        color: "black",
+                        weight: 4
+                    }).addTo(map);
+                }
+
+                document.getElementById("jalan").value =
+                    jalanPoints.map(p => p.join(",")).join("\n");
+            }
+
         });
 
 
@@ -533,6 +1050,22 @@ input[type="file"] {
 
 
                 document.getElementById("polygon").value = polygonPoints.map(p => p.join(",")).join("\n");
+            }
+
+            if (jalanActive) {
+                jalanPoints.push([e.latlng.lat, e.latlng.lng]);
+
+                if (jalanPoints.length > 1) {
+                    if (tempJalanLine) map.removeLayer(tempJalanLine);
+
+                    tempJalanLine = L.polyline(jalanPoints, {
+                        color: "gray",
+                        dashArray: "5,5"
+                    }).addTo(map);
+                }
+
+                document.getElementById("jalan").value =
+                    jalanPoints.map(p => p.join(",")).join("\n");
             }
 
             // console.log([currentMarker, polygonPoints]);

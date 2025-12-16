@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\WaHelpers;
+use App\Models\DikeluarkanSuratUkur;
+use App\Models\PendaftaranPeralihan;
+use App\Models\PendaftaranPertama;
 use App\Models\PetaTanah;
 use App\Models\SuratPermohonan;
+use App\Models\SuratUkur;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -225,35 +232,58 @@ public function data_titik_tanah(){
 
 }
 public function data(Request $request){
-    $data = DB::table('bidang_tanah as bt')
-        ->leftJoin('jenis_tanah as jt', 'bt.id_jenis_tanah', '=', 'jt.id_jenis_tanah')
-        ->select([
-            'bt.id_bidang_tanah',
-            'bt.nomor_bidang',
-            'bt.nib',
-            'bt.luas_tanah',
-            'jt.nama_jenis',
-            'bt.koordinat_tanah as panjang',
-            'bt.alamat_tanah as penerbit',
-            'bt.alamat_tanah'
-        ]);
+    // $data = DB::table('bidang_tanah as bt')
+    //     ->leftJoin('jenis_tanah as jt', 'bt.id_jenis_tanah', '=', 'jt.id_jenis_tanah')
+    //     ->select([
+    //         'bt.id_bidang_tanah',
+    //         'bt.nomor_bidang',
+    //         'bt.nib',
+    //         'bt.luas_tanah',
+    //         'jt.nama_jenis',
+    //         'bt.koordinat_tanah as panjang',
+    //         'bt.alamat_tanah as penerbit',
+    //         'bt.alamat_tanah'
+    //     ]);
 
-    // Tambahkan fitur search jika ada parameter search
-    if ($request->has('search') && !empty($request->search)) {
-        $search = $request->search;
-        $data->where(function($query) use ($search) {
-            $query->where('bt.nomor_bidang', 'like', "%{$search}%")
-                  ->orWhere('bt.nib', 'like', "%{$search}%")
-                  ->orWhere('bt.alamat_tanah', 'like', "%{$search}%")
-                  ->orWhere('jt.nama_jenis', 'like', "%{$search}%");
-        });
+    // // Tambahkan fitur search jika ada parameter search
+    // if ($request->has('search') && !empty($request->search)) {
+    //     $search = $request->search;
+    //     $data->where(function($query) use ($search) {
+    //         $query->where('bt.nomor_bidang', 'like', "%{$search}%")
+    //               ->orWhere('bt.nib', 'like', "%{$search}%")
+    //               ->orWhere('bt.alamat_tanah', 'like', "%{$search}%")
+    //               ->orWhere('jt.nama_jenis', 'like', "%{$search}%");
+    //     });
+    // }
+
+    if(isset($_GET['pemilik'])) {
+        if(Auth::user()->role == "warga") {
+            if($_GET['pemilik'] != Auth::user()->id) {
+                return redirect()->back();
+            }
+
+        }
+        $data['data'] = PetaTanah::where('user_id', $_GET['pemilik'])->orderBy('created_at', 'DESC');
+        $data['data'] = $data['data']->get();// Perbaikan: assign hasil get() ke variable
+
+
+    } else {
+        if(Auth::user()->role == "warga") {
+            return redirect()->to('tanah?pemilik='.Auth::user()->id);
+        }
+        $data['warga'] = User::where('role','warga')->where('is_active', 0);
+        if(isset($_GET['search'])) {
+            $data['warga'] = $data['warga']->where('nama_petugas', 'LIKE', "%".$_GET['search']."%");
+        }
+        $data['warga'] = $data['warga']->get();// Perbaikan: assign hasil get() ke variable
+
+
     }
 
-    $data = PetaTanah::orderBy('created_at', 'DESC');
 
-    $data = $data->get(); // Perbaikan: assign hasil get() ke variable
 
-    return view('web.data_peta', compact('data'));
+
+    return view('web.data_peta', $data);
 }
 
     public function create(){
@@ -261,7 +291,14 @@ public function data(Request $request){
         //                     ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
         //                     ->orderBy('surat_permohonan.created_at', 'DESC')->get();
         // dd($data['permohonans'][0]->id_permohonan);
-        $data['warga'] = User::where('role', 'warga')->get();
+        // $data['warga'] = User::where('role', 'warga')->get();
+        if(Auth::user()->role == "warga") {
+            if($_GET['pemilik'] != Auth::user()->id) {
+                return redirect()->back();
+            }
+
+        }
+        $data['warga'] = User::where('id', $_GET['pemilik'])->first();
         return view('web.peta.tambah', $data);
     }
 
@@ -270,7 +307,9 @@ public function data(Request $request){
         //                     ->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
         //                     ->orderBy('surat_permohonan.created_at', 'DESC')->get();
 
-        $data['warga'] = User::where('role', 'warga')->get();
+        // $data['warga'] = User::where('role', 'warga')->get();
+        $data['warga'] = User::where('id', $_GET['pemilik'])->first();
+
         $data['peta'] = PetaTanah::find($id);
         // dd($data['permohonans'][0]->id_permohonan);
         return view('web.peta.edit', $data);
@@ -282,59 +321,155 @@ public function data(Request $request){
         return view('web.peta.detail', $data);
     }
 
+    public function print($id) {
+        // Load view 'pdf.invoice' dengan data
+        $data['peta'] = PetaTanah::find($id);
+
+        $pdf = Pdf::loadView('web.peta.print', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Mengunduh file PDF
+        return $pdf->stream("Surat Tanah.pdf");
+    }
+
     public function store(Request $request) {
         // dd("ASD");
             // Validasi request
-            $request->validate([
-                'user_id' => 'required',
-                'tanggal_pengukuran' => 'required',
-                'peruntukan' => 'required',
-                'status' => 'required',
-                'panjang' => 'required|numeric',
-                'lebar' => 'required|numeric',
-                'luas' => 'required|numeric',
-                'titik_kordinat' => 'required',
-                'titik_kordinat_polygon' => 'required',
-                'foto_peta' => 'required|file|mimes:jpg,jpeg,png|max:2048',
-                'keperluan' => 'nullable|string|max:255',
-            ]);
 
-            $jenis_surat = [
-                'skt' => 'SKT',
-                'sporadik' => 'SPPF',
-                'waris' => 'SKWT',
-                'hibah' => 'SHT',
-                'jual_beli' => 'SJBT',
-                'tidak_sengketa' => 'SKTS',
-                'permohonan' => 'SPP',
-                'lokasi' => 'SKLT',
-            ];
+
+
+            // $request->validate([
+            //     'user_id' => 'required',
+            //     'tanggal_pengukuran' => 'required',
+            //     'peruntukan' => 'required',
+            //     'status' => 'required',
+            //     'panjang' => 'required|numeric',
+            //     'lebar' => 'required|numeric',
+            //     'luas' => 'required|numeric',
+            //     'titik_kordinat' => 'required',
+            //     'titik_kordinat_polygon' => 'required',
+            //     'foto_peta' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+            //     'keperluan' => 'nullable|string|max:255',
+            // ]);
+
+            // $jenis_surat = [
+            //     'skt' => 'SKT',
+            //     'sporadik' => 'SPPF',
+            //     'waris' => 'SKWT',
+            //     'hibah' => 'SHT',
+            //     'jual_beli' => 'SJBT',
+            //     'tidak_sengketa' => 'SKTS',
+            //     'permohonan' => 'SPP',
+            //     'lokasi' => 'SKLT',
+            // ];
 
             // dd($request->titik_kordinat_polygon);
 
-            $kordinat_array = [];
-            $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
-            foreach($kordinat_polygon as $wonhi) {
-                $kordinat_latlit = explode(',', $wonhi);
-                $kordinat_array[] = [(float) $kordinat_latlit[1], (float) $kordinat_latlit[0]];
-            }
-            // dd($kordinat_array);
+            // $kordinat_array = [];
+            // $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
+            // foreach($kordinat_polygon as $wonhi) {
+            //     $kordinat_latlit = explode(',', $wonhi);
+            //     $kordinat_array[] = [(float) $kordinat_latlit[1], (float) $kordinat_latlit[0]];
+            // }
+            // // dd($kordinat_array);
 
-                // Struktur GeoJSON
-            $geojson = [
-                "type" => "FeatureCollection",
-                "features" => [
-                    [
-                        "type" => "Feature",
-                        "properties" => [
-                            "name" => $request->peruntukan
-                        ],
-                        "geometry" => [
-                            "type" => "Polygon",
-                            "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+            //     // Struktur GeoJSON
+            // $geojson = [
+            //     "type" => "FeatureCollection",
+            //     "features" => [
+            //         [
+            //             "type" => "Feature",
+            //             "properties" => [
+            //                 "name" => $request->peruntukan
+            //             ],
+            //             "geometry" => [
+            //                 "type" => "Polygon",
+            //                 "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+            //             ]
+            //         ]
+            //     ]
+            // ];
+
+            // =======================
+            // 1. POLYGON TANAH
+            // =======================
+            $kordinat_polygon_array = [];
+
+            if (!empty($request->titik_kordinat_polygon)) {
+                $lines = preg_split('/\r\n|\r|\n/', trim($request->titik_kordinat_polygon));
+
+                foreach ($lines as $line) {
+                    if (trim($line) === '') continue;
+
+                    [$lat, $lng] = array_map('floatval', explode(',', $line));
+                    $kordinat_polygon_array[] = [$lng, $lat]; // GeoJSON: [lng, lat]
+                }
+
+                // Tutup polygon jika belum tertutup
+                if ($kordinat_polygon_array[0] !== end($kordinat_polygon_array)) {
+                    $kordinat_polygon_array[] = $kordinat_polygon_array[0];
+                }
+            }
+
+            // =======================
+            // 2. JALAN
+            // =======================
+            $kordinat_jalan_array = [];
+
+            if (!empty($request->titik_kordinat_jalan)) {
+                $lines = preg_split('/\r\n|\r|\n/', trim($request->titik_kordinat_jalan));
+
+                foreach ($lines as $line) {
+                    if (trim($line) === '') continue;
+
+                    [$lat, $lng] = array_map('floatval', explode(',', $line));
+                    $kordinat_jalan_array[] = [$lng, $lat]; // GeoJSON: [lng, lat]
+                }
+            }
+
+            // =======================
+            // 3. FEATURE COLLECTION
+            // =======================
+            $features = [];
+
+            // Feature polygon tanah
+            if (!empty($kordinat_polygon_array)) {
+                $features[] = [
+                    "type" => "Feature",
+                    "properties" => [
+                        "layer" => "tanah",
+                        "name" => $request->peruntukan
+                    ],
+                    "geometry" => [
+                        "type" => "Polygon",
+                        "coordinates" => [
+                            $kordinat_polygon_array
                         ]
                     ]
-                ]
+                ];
+            }
+
+            // Feature jalan (LineString — lebih tepat untuk jalan)
+            if (!empty($kordinat_jalan_array)) {
+                $features[] = [
+                    "type" => "Feature",
+                    "properties" => [
+                        "layer" => "road",
+                        "name" => "jalan"
+                    ],
+                    "geometry" => [
+                        "type" => "LineString",
+                        "coordinates" => $kordinat_jalan_array
+                    ]
+                ];
+            }
+
+            // =======================
+            // 4. FINAL GEOJSON
+            // =======================
+            $geojson = [
+                "type" => "FeatureCollection",
+                "features" => $features
             ];
 
 
@@ -345,51 +480,136 @@ public function data(Request $request){
             $filename = 'tanah_' . time() . '.geojson';
             Storage::disk('public')->put('geojson/' . $filename, $json);
 
-            // dd("That Way");
-
-            // $permohonan = DB::table('surat_permohonan')->join('jenis_surat', 'surat_permohonan.id_jenis_surat', '=', 'jenis_surat.id_jenis_surat')
-            //               ->where('surat_permohonan.id_permohonan', $request->surat_permohonan_id)->orderBy('surat_permohonan.created_at', 'DESC')->first();
-            // dd($permohonan);
             $path = $request->path();
 
             // Handle upload Gambar Surat
             if ($request->hasFile('foto_peta')) {
-                // dd("LALA");
                 $gambarFile = $request->file('foto_peta');
                 $gambarPath = $gambarFile->store('foto_peta', 'public');
             }
 
+            $imageContent = WaHelpers::renderPNG($kordinat_polygon_array, $kordinat_jalan_array, $request->nama_jalan);
+            $fileName = 'peta_' . time() . '.png';
+
+            Storage::disk('public')->put('foto_denah/'.$fileName, $imageContent);
+
 
             $peta = PetaTanah::create([
-                'nomor_bidang' => str_pad(0, 3, '0', STR_PAD_LEFT)."/".date('Y'),
+                // 'nomor_bidang' => str_pad(0, 3, '0', STR_PAD_LEFT)."/".date('Y'),
                 'user_id' => $request->user_id,
-                'status'=> $request->status,
-                'panjang' => $request->panjang,
-                'lebar' => $request->lebar,
-                'luas' => $request->luas,
-                'peruntukan'=> $request->peruntukan,
+
+                'skala' => $request->skala,
+                'penjelasan' => $request->penjelasan,
+                'nama_jalan' => $request->nama_jalan,
+
+                // 'status'=> $request->status,
+                // 'panjang' => $request->panjang,
+                // 'lebar' => $request->lebar,
+                // 'luas' => $request->luas,
+                // 'peruntukan'=> $request->peruntukan,
+                'foto_denah' => 'foto_denah/'.$fileName,
                 'titik_kordinat'=> $request->titik_kordinat,
                 'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
-                // 'titik_kordinat_2'=> $request->titik_kordinat_2,
-                // 'titik_kordinat_3'=> $request->titik_kordinat_3,
-                // 'titik_kordinat_4'=> $request->titik_kordinat_4,
-
-                'tanggal_pengukuran'=> $request->tanggal_pengukuran,
+                // 'tanggal_pengukuran'=> $request->tanggal_pengukuran,
                 'foto_peta'=> $gambarPath,
             ]);
 
+                $PendaftaranPertamaData = PendaftaranPertama::create([
+                    'peta_tanah_id' => $peta->id,
+                    'hak' => $request->hak,
+                    'nomor' => $request->nomor,
+                    'desa_kel' => $request->desa_kel,
+                    'tanggal_berakhirnya_hak' => $request->tanggal_berakhirnya_hak,
 
-            $peta_edit = PetaTanah::find($peta->id);
-            $peta_edit->nomor_bidang = str_pad($peta_edit->id, 3, '0', STR_PAD_LEFT)."/".date('Y');
-            $peta_edit->save();
-            // dd("ASD");
+                    'nib' => $request->nib,
+                    'letak_tanah' => $request->letak_tanah,
+
+                    'konversi' => $request->konversi,
+                    'pemberian_hak' => $request->pemberian_hak,
+                    'pemecahan' => $request->pemecahan,
+
+                    'tgl_konversi' => $request->tgl_konversi,
+                    'no_konversi' => $request->no_konversi,
+
+                    'tgl_pemberian_hak' => $request->tgl_pemberian_hak,
+                    'no_pemberian_hak' => $request->no_pemberian_hak,
+
+                    'tgl_pemecahan' => $request->tgl_pemecahan,
+                    'no_pemecahan' => $request->no_pemecahan,
+
+                    'tgl_surat_ukur' => $request->tgl_surat_ukur,
+                    'no_surat_ukur' => $request->no_surat_ukur,
+                    'luas_surat_ukur' => $request->luas_surat_ukur,
+
+                    'nama_pemegang_hak' => $request->nama_pemegang_hak,
+                    'tanggal_lahir_akta_pendirian' => $request->tanggal_lahir_akta_pendirian,
+
+                    'petunjuk' => $request->petunjuk,
+                ]);
+
+                if ($request->sebab) {
+                    foreach ($request->sebab as $idx => $value) {
+                        PendaftaranPeralihan::create([
+                            'peta_tanah_id' => $peta->id,
+                            'sebab' => $request->sebab[$idx],
+                            'nama' => $request->nama[$idx],
+                            'tanda_tangan' => $request->tanda_tangan[$idx] ?? "Mohon diajukan!",
+                        ]);
+                    }
+                }
+
+                $SuratUkur = SuratUkur::create([
+                    'peta_tanah_id' => $peta->id,
+                    'nomor' => $request->nomor_surat,
+                    'provinsi' => $request->provinsi,
+                    'kabupaten' => $request->kabupaten,
+                    'kecamatan' => $request->kecamatan,
+                    'desa' => $request->desa,
+
+                    'peta' => $request->peta,
+                    'nomor_peta' => $request->nomor_peta,
+                    'lembar' => $request->lembar,
+                    'kotak' => $request->kotak,
+
+                    'keadaan_tanah' => $request->keadaan_tanah,
+                    'tanda_tanda_batas' => $request->tanda_tanda_batas,
+                    'penunjukan_dan_penetapan_batas' => $request->penunjukan_dan_penetapan_batas,
+                    // 'tgl_pemecahan' => $request->tgl_pemecahan,
+                    'hal_lain_lain' => $request->hal_lain_lain,
+
+                    'tgl_daftar_isian_208' => $request->tgl_daftar_isian_208,
+                    'no_daftar_isian_208' => $request->no_daftar_isian_208,
+                    'tgl_daftar_isian_302' => $request->tgl_daftar_isian_302,
+                    'no_daftar_isian_302' => $request->no_daftar_isian_302,
+                    'tgl_daftar_isian_307' => $request->tgl_daftar_isian_307,
+                    'no_daftar_isian_307' => $request->no_daftar_isian_307,
+                    'tanggal_penomoran_surat_ukur' => $request->tanggal_penomoran_surat_ukur,
+                    'nomor_surat_ukur' => $request->nomor_surat_ukur,
+                    'nomor_hak' => $request->nomor_hak,
+
+                ]);
+
+                    if ($request->tanggal_surat_ukur) {
+                        foreach ($request->tanggal_surat_ukur as $i => $tgl) {
+                            DikeluarkanSuratUkur::create([
+                                'surat_ukur_id' => $SuratUkur->id,
+                                'tanggal'  => $request->tanggal_surat_ukur[$i],
+                                'nomor'    => $request->nomor_surat_ukur_all[$i],
+                                'luas'     => $request->luas_surat_ukur_all[$i],
+                                'nomor_hak'=> $request->nomor_hak_all[$i],
+                                'sisa_luas'=> $request->sisa_luas[$i],
+                            ]);
+                        }
+                    }
 
 
+            // $peta_edit = PetaTanah::find($peta->id);
+            // $peta_edit->nomor_bidang = str_pad($peta_edit->id, 3, '0', STR_PAD_LEFT)."/".date('Y');
+            // $peta_edit->save();
 
             DB::commit();
 
-            // return redirect()->back()->with('success', "Data Tanah telah ditambahkan!");
-            return redirect()->to('tanah')->with('success', "Data Tanah telah ditambahkan!");
+            return redirect()->to('tanah?pemilik='.$request->user_id)->with('success', "Data Tanah telah ditambahkan!");
 
         try {
 
@@ -401,21 +621,20 @@ public function data(Request $request){
 
     public function update(Request $request, $id) {
         // dd($id);
-        try {
             // Validasi request
-            $request->validate([
-                'user_id' => 'required',
-                'tanggal_pengukuran' => 'required',
-                'peruntukan' => 'required',
-                'status' => 'required',
-                'panjang' => 'required|numeric',
-                'lebar' => 'required|numeric',
-                'luas' => 'required|numeric',
-                'titik_kordinat' => 'required',
-                'titik_kordinat_polygon' => 'required',
-                'foto_peta' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-                'keperluan' => 'nullable|string|max:255',
-            ]);
+            // $request->validate([
+            //     'user_id' => 'required',
+            //     'tanggal_pengukuran' => 'required',
+            //     'peruntukan' => 'required',
+            //     'status' => 'required',
+            //     'panjang' => 'required|numeric',
+            //     'lebar' => 'required|numeric',
+            //     'luas' => 'required|numeric',
+            //     'titik_kordinat' => 'required',
+            //     'titik_kordinat_polygon' => 'required',
+            //     'foto_peta' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            //     'keperluan' => 'nullable|string|max:255',
+            // ]);
 
             $jenis_surat = [
                 'skt' => 'SKT',
@@ -443,29 +662,111 @@ public function data(Request $request){
 
             // Handle upload Gambar Surat
 
-              $kordinat_array = [];
-            $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
-            foreach($kordinat_polygon as $wonhi) {
-                $kordinat_latlit = explode(',', $wonhi);
-                $kordinat_array[] = [(float) $kordinat_latlit[1], (float) $kordinat_latlit[0]];
-            }
-            // dd($kordinat_array);
+            //   $kordinat_array = [];
+            // $kordinat_polygon = preg_split('/\r\n|\r|\n/', $request->titik_kordinat_polygon);
+            // foreach($kordinat_polygon as $wonhi) {
+            //     $kordinat_latlit = explode(',', $wonhi);
+            //     $kordinat_array[] = [(float) $kordinat_latlit[1], (float) $kordinat_latlit[0]];
+            // }
+            // // dd($kordinat_array);
 
-                // Struktur GeoJSON
-            $geojson = [
-                "type" => "FeatureCollection",
-                "features" => [
-                    [
-                        "type" => "Feature",
-                        "properties" => [
-                            "name" => $request->peruntukan
-                        ],
-                        "geometry" => [
-                            "type" => "Polygon",
-                            "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+            //     // Struktur GeoJSON
+            // $geojson = [
+            //     "type" => "FeatureCollection",
+            //     "features" => [
+            //         [
+            //             "type" => "Feature",
+            //             "properties" => [
+            //                 "name" => $request->peruntukan
+            //             ],
+            //             "geometry" => [
+            //                 "type" => "Polygon",
+            //                 "coordinates" => [ $kordinat_array ] // polygon harus array 2D
+            //             ]
+            //         ]
+            //     ]
+            // ];
+
+                        // =======================
+            // 1. POLYGON TANAH
+            // =======================
+            $kordinat_polygon_array = [];
+
+            if (!empty($request->titik_kordinat_polygon)) {
+                $lines = preg_split('/\r\n|\r|\n/', trim($request->titik_kordinat_polygon));
+
+                foreach ($lines as $line) {
+                    if (trim($line) === '') continue;
+
+                    [$lat, $lng] = array_map('floatval', explode(',', $line));
+                    $kordinat_polygon_array[] = [$lng, $lat]; // GeoJSON: [lng, lat]
+                }
+
+                // Tutup polygon jika belum tertutup
+                if ($kordinat_polygon_array[0] !== end($kordinat_polygon_array)) {
+                    $kordinat_polygon_array[] = $kordinat_polygon_array[0];
+                }
+            }
+
+            // =======================
+            // 2. JALAN
+            // =======================
+            $kordinat_jalan_array = [];
+
+            if (!empty($request->titik_kordinat_jalan)) {
+                $lines = preg_split('/\r\n|\r|\n/', trim($request->titik_kordinat_jalan));
+
+                foreach ($lines as $line) {
+                    if (trim($line) === '') continue;
+
+                    [$lat, $lng] = array_map('floatval', explode(',', $line));
+                    $kordinat_jalan_array[] = [$lng, $lat]; // GeoJSON: [lng, lat]
+                }
+            }
+
+            // =======================
+            // 3. FEATURE COLLECTION
+            // =======================
+            $features = [];
+
+            // Feature polygon tanah
+            if (!empty($kordinat_polygon_array)) {
+                $features[] = [
+                    "type" => "Feature",
+                    "properties" => [
+                        "layer" => "tanah",
+                        "name" => $request->peruntukan
+                    ],
+                    "geometry" => [
+                        "type" => "Polygon",
+                        "coordinates" => [
+                            $kordinat_polygon_array
                         ]
                     ]
-                ]
+                ];
+            }
+
+            // Feature jalan (LineString — lebih tepat untuk jalan)
+            if (!empty($kordinat_jalan_array)) {
+                $features[] = [
+                    "type" => "Feature",
+                    "properties" => [
+                        "layer" => "road",
+                        "name" => "jalan"
+                    ],
+                    "geometry" => [
+                        "type" => "LineString",
+                        "coordinates" => $kordinat_jalan_array
+                    ]
+                ];
+            }
+
+            // =======================
+            // 4. FINAL GEOJSON
+            // =======================
+            $geojson = [
+                "type" => "FeatureCollection",
+                "features" => $features
             ];
 
 
@@ -476,16 +777,29 @@ public function data(Request $request){
             $filename = 'tanah_' . time() . '.geojson';
             Storage::disk('public')->put('geojson/' . $filename, $json);
 
+            $imageContent = WaHelpers::renderPNG($kordinat_polygon_array, $kordinat_jalan_array, $request->nama_jalan);
+            $fileName = 'peta_' . time() . '.png';
+
+            Storage::disk('public')->put('foto_denah/'.$fileName, $imageContent);
 
             PetaTanah::where('id',$id)->update([
-                'user_id' => $request->user_id,
-                'status'=> $request->status,
-                'panjang' => $request->panjang,
-                'lebar' => $request->lebar,
-                'luas' => $request->luas,
-                'peruntukan'=> $request->peruntukan,
+                // 'user_id' => $request->user_id,
+                // 'status'=> $request->status,
+                // 'panjang' => $request->panjang,
+                // 'lebar' => $request->lebar,
+                // 'luas' => $request->luas,
+                // 'peruntukan'=> $request->peruntukan,
                 'titik_kordinat'=> $request->titik_kordinat,
                 'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
+                'foto_denah' => 'foto_denah/'.$fileName,
+
+                'skala' => $request->skala,
+                'penjelasan' => $request->penjelasan,
+                'nama_jalan' => $request->nama_jalan,
+
+                // 'tanggal_pengecekan' => $request->tanggal_pengecekan,
+                'alamat' => $request->alamat,
+
                 // 'titik_kordinat_2'=> $request->titik_kordinat_2,
                 // 'titik_kordinat_3'=> $request->titik_kordinat_3,
                 // 'titik_kordinat_4'=> $request->titik_kordinat_4,
@@ -506,13 +820,105 @@ public function data(Request $request){
                 ]);
             }
 
+            $PendaftaranPertamaData = PendaftaranPertama::where('peta_tanah_id', $id)->update([
+                    'hak' => $request->hak,
+                    'nomor' => $request->nomor,
+                    'desa_kel' => $request->desa_kel,
+                    'tanggal_berakhirnya_hak' => $request->tanggal_berakhirnya_hak,
+
+                    'nib' => $request->nib,
+                    'letak_tanah' => $request->letak_tanah,
+
+                    'konversi' => $request->konversi,
+                    'pemberian_hak' => $request->pemberian_hak,
+                    'pemecahan' => $request->pemecahan,
+
+                    'tgl_konversi' => $request->tgl_konversi,
+                    'no_konversi' => $request->no_konversi,
+
+                    'tgl_pemberian_hak' => $request->tgl_pemberian_hak,
+                    'no_pemberian_hak' => $request->no_pemberian_hak,
+
+                    'tgl_pemecahan' => $request->tgl_pemecahan,
+                    'no_pemecahan' => $request->no_pemecahan,
+
+                    'tgl_surat_ukur' => $request->tgl_surat_ukur,
+                    'no_surat_ukur' => $request->no_surat_ukur,
+                    'luas_surat_ukur' => $request->luas_surat_ukur,
+
+                    'nama_pemegang_hak' => $request->nama_pemegang_hak,
+                    'tanggal_lahir_akta_pendirian' => $request->tanggal_lahir_akta_pendirian,
+
+                    'petunjuk' => $request->petunjuk,
+                ]);
+
+                PendaftaranPeralihan::where('peta_tanah_id', $id)->delete();
+                if ($request->sebab) {
+                    foreach ($request->sebab as $idx => $value) {
+                        PendaftaranPeralihan::create([
+                            'peta_tanah_id' => $peta->id,
+                            'sebab' => $request->sebab[$idx],
+                            'nama' => $request->nama[$idx],
+                            'tanda_tangan' => $request->tanda_tangan[$idx] ?? "Mohon diajukan!",
+                        ]);
+                    }
+                }
+
+                $SuratUkur = SuratUkur::where('peta_tanah_id', $id)->update([
+                    'nomor' => $request->nomor_surat,
+                    'provinsi' => $request->provinsi,
+                    'kabupaten' => $request->kabupaten,
+                    'kecamatan' => $request->kecamatan,
+                    'desa' => $request->desa,
+
+                    'peta' => $request->peta,
+                    'nomor_peta' => $request->nomor_peta,
+                    'lembar' => $request->lembar,
+                    'kotak' => $request->kotak,
+
+                    'keadaan_tanah' => $request->keadaan_tanah,
+                    'tanda_tanda_batas' => $request->tanda_tanda_batas,
+                    'penunjukan_dan_penetapan_batas' => $request->penunjukan_dan_penetapan_batas,
+                    // 'tgl_pemecahan' => $request->tgl_pemecahan,
+                    'hal_lain_lain' => $request->hal_lain_lain,
+
+                    'tgl_daftar_isian_208' => $request->tgl_daftar_isian_208,
+                    'no_daftar_isian_208' => $request->no_daftar_isian_208,
+                    'tgl_daftar_isian_302' => $request->tgl_daftar_isian_302,
+                    'no_daftar_isian_302' => $request->no_daftar_isian_302,
+                    'tgl_daftar_isian_307' => $request->tgl_daftar_isian_307,
+                    'no_daftar_isian_307' => $request->no_daftar_isian_307,
+                    'tanggal_penomoran_surat_ukur' => $request->tanggal_penomoran_surat_ukur,
+                    'nomor_surat_ukur' => $request->nomor_surat_ukur,
+                    'nomor_hak' => $request->nomor_hak,
+
+                ]);
+
+                $SuratUkur = SuratUkur::where('peta_tanah_id', $id)->first();
+
+                DikeluarkanSuratUkur::where('surat_ukur_id', $SuratUkur->id)->delete();
+                if ($request->tanggal_surat_ukur) {
+                    foreach ($request->tanggal_surat_ukur as $i => $tgl) {
+                        DikeluarkanSuratUkur::create([
+                            'surat_ukur_id' => $SuratUkur->id,
+                            'tanggal'  => $request->tanggal_surat_ukur[$i],
+                            'nomor'    => $request->nomor_surat_ukur_all[$i],
+                            'luas'     => $request->luas_surat_ukur_all[$i],
+                            'nomor_hak'=> $request->nomor_hak_all[$i],
+                            'sisa_luas'=> $request->sisa_luas[$i],
+                        ]);
+                    }
+                }
+
             // dd("ASD");
 
 
+            // return response($imageContent)->header('Content-Type', 'image/png');
 
             DB::commit();
 
             return redirect()->to('tanah/'.$id.'/show')->with('success', "Data Tanah telah diubah!");
+        try {
 
         } catch (\Exception $e) {
             DB::rollBack();

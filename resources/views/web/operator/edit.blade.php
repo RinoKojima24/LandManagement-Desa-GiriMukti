@@ -382,10 +382,10 @@
 <div class="container">
     <div class="card">
         <div class="header">
-            <a href="{{ route('home') }}">
+            <a href="{{ url('operator') }}">
                 <button class="back-btn" type="button">←</button>
             </a>
-            <h1>Pengajuan Surat Keterangan</h1>
+            <h1>Tambah Operator</h1>
         </div>
 
         @if ($errors->any())
@@ -404,11 +404,12 @@
             </div>
         @endif
 
-      <form id="suratForm"
-      action="{{ url('pengajuan') }}"
+      <form
+      action="{{ url('operator/'.$operator->id) }}"
       method="POST"
       enctype="multipart/form-data">
     @csrf
+    @method('PUT')
             <input type="hidden" name="type" value="keterangan">
             <div class="row">
                 <div class="col-md-6 col-sm-12">
@@ -422,7 +423,7 @@
                             name="namaLengkap"
                             class="form-control"
                             placeholder="Masukkan nama lengkap"
-                            value="{{ old('namaLengkap') }}"
+                            value="{{ old('namaLengkap', $operator->nama_petugas) }}"
                             required
                         >
                         <div class="error-message">Nama lengkap wajib diisi</div>
@@ -440,77 +441,28 @@
                             placeholder="Masukkan 16 digit NIK"
                             maxlength="16"
                             pattern="[0-9]{16}"
-                            value="{{ old('nik') }}"
+                            value="{{ old('nik', $operator->nik) }}"
                             required
                         >
                         <div class="error-message">NIK harus 16 digit angka</div>
                     </div>
-
                     <div class="form-group">
-                        <label for="alamat">
-                            No. Whatsapp<span class="required">*</span>
+                        <label for="nik">
+                            NIP<span class="required">*</span>
                         </label>
-                        <input type="text" class="form-control" name="no_wa" id="no_wa" value="{{ old('no_wa') }}" placeholder="Masukan nomor whatsapp anda!" required>
-                        <div class="error-message">Alamat wajib diisi</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="alamat">
-                            Alamat<span class="required">*</span>
-                        </label>
-                        <textarea
-                            id="alamat"
-                            name="alamat"
+                        <input
+                            type="text"
+                            id="nip"
+                            name="nip"
                             class="form-control"
-                            placeholder="Masukkan alamat lengkap"
+                            placeholder="Masukkan 16 digit NIP"
+                            maxlength="16"
+                            pattern="[0-9]{16}"
+                            value="{{ old('nip', $operator->nip) }}"
                             required
-                        >{{ old('alamat') }}</textarea>
-                        <div class="error-message">Alamat wajib diisi</div>
+                        >
+                        <div class="error-message">NIK harus 16 digit angka</div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="jenisKelamin">
-                            Jenis Kelamin<span class="required">*</span>
-                        </label>
-                        <select id="jenisKelamin" name="jenisKelamin" class="form-control" required>
-                            <option value="" disabled selected>Pilih jenis kelamin</option>
-                            <option value="L" {{ old('jenisKelamin') == 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="P" {{ old('jenisKelamin') == 'perempuan' ? 'selected' : '' }}>Perempuan</option>
-                        </select>
-                        <div class="error-message">Jenis kelamin wajib dipilih</div>
-                    </div>
-
-                </div>
-                <div class="col-md-6 col-sm-12">
-                    <div class="form-group">
-                        <label for="jenisKeterangan">
-                            Jenis Keterangan<span class="required">*</span>
-                        </label>
-                        <select id="jenis_surat" class="form-control" name="jenis_surat" required>
-                            <option value="" disabled  selected>Pilih jenis keterangan</option>
-                            <option value="domisili" {{ old('jenisKeterangan') == 'domisili' ? 'selected' : '' }}>Surat Keterangan Domisili</option>
-                            <option value="usaha" {{ old('jenisKeterangan') == 'usaha' ? 'selected' : '' }}>Surat Keterangan Usaha</option>
-                            <option value="tidak-mampu" {{ old('jenisKeterangan') == 'tidak-mampu' ? 'selected' : '' }}>Surat Keterangan Tidak Mampu</option>
-                            <option value="kelahiran" {{ old('jenisKeterangan') == 'kelahiran' ? 'selected' : '' }}>Surat Keterangan Kelahiran</option>
-                            <option value="kematian" {{ old('jenisKeterangan') == 'kematian' ? 'selected' : '' }}>Surat Keterangan Kematian</option>
-                        </select>
-                        <div class="error-message">Jenis keterangan wajib dipilih</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="keperluan">
-                            Keperluan<span class="required">*</span>
-                        </label>
-                        <textarea
-                            id="keperluan"
-                            name="keperluan"
-                            class="form-control"
-                            placeholder="Jelaskan keperluan pengajuan surat"
-                            required
-                        >{{ old('keperluan') }}</textarea>
-                        <div class="error-message">Keperluan wajib diisi</div>
-                    </div>
-
                     <div class="upload-section">
                         <div class="upload-label">Upload Dokumen<span class="required">*</span></div>
 
@@ -524,32 +476,40 @@
                             <input
                                 type="file"
                                 id="ktpUpload"
-                                name="ktp"
+                                name="foto_ktp"
                                 accept="image/jpeg,image/jpg,image/png,.pdf"
-                                required
-                            >
-                        </div>
 
-                        <div class="upload-group" id="pendukungGroup">
-                            <div class="upload-input" id="pendukungFileName">Dokumen Pendukung (Opsional - JPG, PNG, PDF - Maks 2MB)</div>
-                            <label for="pendukungUpload" class="upload-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                                </svg>
-                            </label>
-                            <input
-                                type="file"
-                                id="pendukungUpload"
-                                name="dokumen_pendukung"
-                                accept="image/jpeg,image/jpg,image/png,.pdf"
                             >
                         </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="alamat">
+                            No. Whatsapp<span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="no_telepon" id="no_telepon" value="{{ old('no_telepon', $operator->no_telepon) }}" placeholder="Masukan nomor whatsapp!" required>
+                        <div class="error-message">Alamat wajib diisi</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alamat">
+                            Email<span class="required">*</span>
+                        </label>
+                        <input type="text" required class="form-control" name="email" id="email" value="{{ old('email', $operator->email) }}" placeholder="Masukan Email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alamat">
+                            Jabatan<span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="jabatan" id="jabatan" value="{{ old('jabatan', $operator->jabatan) }}" placeholder="Masukan Jabatan" required>
                     </div>
                 </div>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
-                Submit Pengajuan
+                Simpan Data
             </button>
         </form>
     </div>
@@ -586,21 +546,21 @@
     });
 
     // Handle dokumen pendukung upload
-    document.getElementById('pendukungUpload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const pendukungGroup = document.getElementById('pendukungGroup');
-        const pendukungFileName = document.getElementById('pendukungFileName');
+    // document.getElementById('pendukungUpload').addEventListener('change', function(e) {
+    //     const file = e.target.files[0];
+    //     const pendukungGroup = document.getElementById('pendukungGroup');
+    //     const pendukungFileName = document.getElementById('pendukungFileName');
 
-        if (file) {
-            if (validateFileSize(file)) {
-                pendukungFileName.textContent = file.name;
-                pendukungFileName.classList.add('uploaded');
-                pendukungGroup.classList.add('has-file');
-            } else {
-                this.value = ''; // Reset input
-            }
-        }
-    });
+    //     if (file) {
+    //         if (validateFileSize(file)) {
+    //             pendukungFileName.textContent = file.name;
+    //             pendukungFileName.classList.add('uploaded');
+    //             pendukungGroup.classList.add('has-file');
+    //         } else {
+    //             this.value = ''; // Reset input
+    //         }
+    //     }
+    // });
 
     // Validasi NIK (hanya angka)
     document.getElementById('nik').addEventListener('input', function(e) {
@@ -608,32 +568,32 @@
     });
 
     // Form validation sebelum submit
-    document.getElementById('suratForm').addEventListener('submit', function(e) {
-        const submitBtn = document.getElementById('submitBtn');
-        const nik = document.getElementById('nik').value;
+    // document.getElementById('suratForm').addEventListener('submit', function(e) {
+    //     const submitBtn = document.getElementById('submitBtn');
+    //     const nik = document.getElementById('nik').value;
 
-        // Validasi NIK
-        if (nik.length !== 16) {
-            e.preventDefault();
-            alert('NIK harus 16 digit');
-            document.getElementById('nik').focus();
-            return false;
-        }
+    //     // Validasi NIK
+    //     if (nik.length !== 16) {
+    //         e.preventDefault();
+    //         alert('NIK harus 16 digit');
+    //         document.getElementById('nik').focus();
+    //         return false;
+    //     }
 
-        // Disable button dan tampilkan loading
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span>Mengirim...';
+    //     // Disable button dan tampilkan loading
+    //     submitBtn.disabled = true;
+    //     submitBtn.innerHTML = '<span class="spinner"></span>Mengirim...';
 
-        // Form akan submit secara normal ke server
-        return true;
-    });
+    //     // Form akan submit secara normal ke server
+    //     return true;
+    // });
 
     // Reset error state saat user mulai mengetik
-    const formInputs = document.querySelectorAll('input, select, textarea');
-    formInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            this.closest('.form-group')?.classList.remove('error');
-        });
-    });
+    // const formInputs = document.querySelectorAll('input, select, textarea');
+    // formInputs.forEach(input => {
+    //     input.addEventListener('input', function() {
+    //         this.closest('.form-group')?.classList.remove('error');
+    //     });
+    // });
 </script>
 @endpush

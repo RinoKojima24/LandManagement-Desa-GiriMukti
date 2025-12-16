@@ -382,10 +382,10 @@
 <div class="container">
     <div class="card">
         <div class="header">
-            <a href="{{ route('home') }}">
+            <a href="{{ url('operator') }}">
                 <button class="back-btn" type="button">←</button>
             </a>
-            <h1>Pengajuan Surat Tanah</h1>
+            <h1>Tambah Operator</h1>
         </div>
 
         @if ($errors->any())
@@ -405,32 +405,24 @@
         @endif
 
       <form id="suratForm"
-      action="{{ url('pengajuan') }}"
+      action="{{ url('operator') }}"
       method="POST"
       enctype="multipart/form-data">
     @csrf
-            <input type="hidden" name="type" value="surat">
+            <input type="hidden" name="type" value="keterangan">
             <div class="row">
-                {{-- @php
-                    $table->string('nama')->nullable();
-                    $table->string('nik')->nullable();
-                    $table->string('tempat')->nullable();
-                    $table->date('tanggal_lahir')->nullable();
-                    $table->string('pekerjaan')->nullable();
-                    $table->text('alamat')->nullable();
-                @endphp --}}
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label for="namaLengkap">
-                            Nama<span class="required">*</span>
+                            Nama Lengkap<span class="required">*</span>
                         </label>
                         <input
                             type="text"
-                            id="nama"
-                            name="nama"
+                            id="namaLengkap"
+                            name="namaLengkap"
                             class="form-control"
                             placeholder="Masukkan nama lengkap"
-                            value="{{ old('nama') }}"
+                            value="{{ old('namaLengkap') }}"
                             required
                         >
                         <div class="error-message">Nama lengkap wajib diisi</div>
@@ -453,258 +445,70 @@
                         >
                         <div class="error-message">NIK harus 16 digit angka</div>
                     </div>
-
                     <div class="form-group">
                         <label for="nik">
-                            Agama<span class="required">*</span>
+                            NIP<span class="required">*</span>
                         </label>
                         <input
                             type="text"
-                            id="agama"
-                            name="agama"
+                            id="nip"
+                            name="nip"
                             class="form-control"
-                            value="{{ old('agama') }}"
+                            placeholder="Masukkan 16 digit NIP"
+                            maxlength="16"
+                            pattern="[0-9]{16}"
+                            value="{{ old('nip') }}"
                             required
                         >
                         <div class="error-message">NIK harus 16 digit angka</div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="alamat">
-                            Tempat Tanggal Lahir<span class="required">*</span>
-                        </label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" name="tempat" id="tempat" value="{{ old('tempat') }}" placeholder="Tempat lahir anda" required>
-                            </div>
-                            <div class="col-md-6">
-                                <input type="date" class="form-control" name="tanggal_lahir" id="tanggal_lahir" value="{{ old('tanggal_lahir') }}" placeholder="Tanggal lahir anda" required>
-                            </div>
-
-                        </div>
-                        <div class="error-message">Alamat wajib diisi</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="alamat">
-                            Ukuran Tanah<span class="required">*</span>
-                        </label>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <input type="number" class="form-control" name="panjang" id="panjang" value="{{ old('panjang') }}" placeholder="Panjang" required>
-                            </div>
-                            <div class="col-md-4">
-                                <input type="number" class="form-control" name="lebar" id="lebar" value="{{ old('lebar') }}" placeholder="Lebar" required>
-                            </div>
-                            <div class="col-md-4">
-                                <input type="number" class="form-control" name="luas" id="luas" value="{{ old('luas') }}" placeholder="Luas" required>
-                            </div>
-
-                        </div>
-                        <div class="error-message">Alamat wajib diisi</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="alamat">
-                            Kondisi Fisik<span class="required">*</span>
-                        </label>
-                        <textarea
-                            id="kondisi_fisik"
-                            name="kondisi_fisik"
-                            class="form-control"
-                            placeholder="Masukkan Kondisi Fisik"
-                            required
-                        >{{ old('kondisi_fisik') }}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="nik">
-                            Tahun Dikuasai<span class="required">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            id="tahun_dikuasai"
-                            name="tahun_dikuasai"
-                            class="form-control"
-                            placeholder="Masukkan Pekerjaan"
-                            {{-- maxlength="16"
-                            pattern="[0-9]{16}" --}}
-                            value="{{ old('tahun_dikuasai') }}"
-                            required
-                        >
-                        <div class="error-message">NIK harus 16 digit angka</div>
-                    </div>
-                    <div class="form-group">
-                        <div class="upload-section">
-                            <div class="upload-label">Upload Dokumen<span class="required">*</span></div>
-
-                            <div class="upload-group" id="ktpGroup">
-                                <div class="upload-input" id="ktpFileName">KTP (JPG, PNG, PDF - Maks 2MB)</div>
-                                <label for="ktpUpload" class="upload-btn">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                                    </svg>
-                                </label>
-                                <input
-                                    type="file"
-                                    id="ktpUpload"
-                                    name="ktp"
-                                    accept="image/jpeg,image/jpg,image/png,.pdf"
-                                    required
-                                >
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-sm-12">
-                    <div class="form-group">
-                        <label for="nik">
-                            Pekerjaan<span class="required">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="pekerjaan"
-                            name="pekerjaan"
-                            class="form-control"
-                            placeholder="Masukkan Pekerjaan"
-                            {{-- maxlength="16" --}}
-                            {{-- pattern="[0-9]{16}" --}}
-                            value="{{ old('pekerjaan') }}"
-                            required
-                        >
-                        <div class="error-message">NIK harus 16 digit angka</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="alamat">
-                            Alamat<span class="required">*</span>
-                        </label>
-                        <textarea
-                            id="alamat"
-                            name="alamat"
-                            class="form-control"
-                            placeholder="Masukkan alamat lengkap"
-                            required
-                        >{{ old('alamat') }}</textarea>
-                        <div class="error-message">Alamat wajib diisi</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="nik">
-                            Jalan<span class="required">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="jalan"
-                            name="jalan"
-                            class="form-control"
-                            placeholder="Masukkan Pekerjaan"
-                            {{-- maxlength="16"
-                            pattern="[0-9]{16}" --}}
-                            value="{{ old('jalan') }}"
-                            required
-                        >
-                        <div class="error-message">NIK harus 16 digit angka</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="nik">
-                            RT / RW<span class="required">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            id="rt_rw"
-                            name="rt_rw"
-                            class="form-control"
-                            placeholder="Masukkan Pekerjaan"
-                            {{-- maxlength="16"
-                            pattern="[0-9]{16}" --}}
-                            value="{{ old('rt_rw') }}"
-                            required
-                        >
-                        <div class="error-message">NIK harus 16 digit angka</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="alamat">
-                            Dasar Perolehan<span class="required">*</span>
-                        </label>
-                        <textarea
-                            id="dasar_perolehan"
-                            name="dasar_perolehan"
-                            class="form-control"
-                            placeholder="Masukkan Dasar Perolehan"
-                            required
-                        >{{ old('dasar_perolehan') }}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="alamat">
-                            Batas-batas Tanah<span class="required">*</span>
-                        </label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" name="sebelah_utara" id="sebelah_utara" value="{{ old('sebelah_utara') }}" placeholder="Sebelah Utara" required>
-                            </div>
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" name="sebelah_timur" id="sebelah_timur" value="{{ old('sebelah_timur') }}" placeholder="Sebelah Timur" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" name="sebelah_selatan" id="sebelah_selatan" value="{{ old('sebelah_selatan') }}" placeholder="Sebelah Selatan" required>
-                            </div>
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" name="sebelah_barat" id="sebelah_barat" value="{{ old('sebelah_barat') }}" placeholder="Sebelah Barat" required>
-                            </div>
-                        </div>
-                        <div class="error-message">Alamat wajib diisi</div>
-                    </div>
-                    {{-- <div class="form-group">
-                        <label for="jenisKelamin">
-                            Jenis Kelamin<span class="required">*</span>
-                        </label>
-                        <select id="jenisKelamin" name="jenisKelamin" class="form-control" required>
-                            <option value="" disabled selected>Pilih jenis kelamin</option>
-                            <option value="L" {{ old('jenisKelamin') == 'laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="P" {{ old('jenisKelamin') == 'perempuan' ? 'selected' : '' }}>Perempuan</option>
-                        </select>
-                        <div class="error-message">Jenis kelamin wajib dipilih</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="jenis_surat">
-                            Jenis Surat<span class="required">*</span>
-                        </label>
-                        <select name="jenis_surat" id="jenis_surat" class="form-control" required>
-                            <option value="" disabled selected>Pilih jenis surat</option>
-                            <option value="skt" {{ old('jenis_surat') == 'skt' ? 'selected' : '' }}>Surat Keterangan Tanah (SKT)</option>
-                            <option value="sporadik" {{ old('jenis_surat') == 'sporadik' ? 'selected' : '' }}>Surat Pernyataan Penguasaan Fisik (Sporadik)</option>
-                            <option value="waris" {{ old('jenis_surat') == 'waris' ? 'selected' : '' }}>Surat Keterangan Waris Tanah</option>
-                            <option value="hibah" {{ old('jenis_surat') == 'hibah' ? 'selected' : '' }}>Surat Hibah Tanah</option>
-                            <option value="jual_beli" {{ old('jenis_surat') == 'jual_beli' ? 'selected' : '' }}>Surat Jual Beli Tanah</option>
-                            <option value="tidak_sengketa" {{ old('jenis_surat') == 'tidak_sengketa' ? 'selected' : '' }}>Surat Keterangan Tidak Sengketa</option>
-                            <option value="permohonan" {{ old('jenis_surat') == 'permohonan' ? 'selected' : '' }}>Surat Permohonan Penggarapan / Pemanfaatan Tanah Desa</option>
-                            <option value="lokasi" {{ old('jenis_surat') == 'lokasi' ? 'selected' : '' }}>Surat Keterangan Lokasi Tanah</option>
-                        </select>
-                        <div class="error-message">Jenis surat wajib dipilih</div>
-                    </div> --}}
-                    <input type="hidden" name="jenis_surat" value="skt">
-
-
-
                     <div class="upload-section">
-                        <div class="upload-group" id="pendukungGroup">
-                            <div class="upload-input" id="pendukungFileName">Dokumen Pendukung (Opsional - JPG, PNG, PDF - Maks 2MB)</div>
-                            <label for="pendukungUpload" class="upload-btn">
+                        <div class="upload-label">Upload Dokumen<span class="required">*</span></div>
+
+                        <div class="upload-group" id="ktpGroup">
+                            <div class="upload-input" id="ktpFileName">KTP (JPG, PNG, PDF - Maks 2MB)</div>
+                            <label for="ktpUpload" class="upload-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
                                 </svg>
                             </label>
                             <input
                                 type="file"
-                                id="pendukungUpload"
-                                name="dokumen_pendukung"
+                                id="ktpUpload"
+                                name="foto_ktp"
                                 accept="image/jpeg,image/jpg,image/png,.pdf"
+                                required
                             >
                         </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="alamat">
+                            No. Whatsapp<span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="no_telepon" id="no_telepon" value="{{ old('no_telepon') }}" placeholder="Masukan nomor whatsapp!" required>
+                        <div class="error-message">Alamat wajib diisi</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alamat">
+                            Email<span class="required">*</span>
+                        </label>
+                        <input type="text" required class="form-control" name="email" id="email" value="{{ old('email') }}" placeholder="Masukan Email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="alamat">
+                            Jabatan<span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="jabatan" id="jabatan" value="{{ old('jabatan') }}" placeholder="Masukan Jabatan" required>
                     </div>
                 </div>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
-                Submit Pengajuan
+                Simpan Data
             </button>
         </form>
     </div>

@@ -77,8 +77,11 @@
         <h2 class="login-title" style="text-align: center; font-size: 15px;"><b>Registrasi</b></h2>
         <p class="login-desc" style="text-align: center; font-size: 13px;">Lengkapi form dibawah</p>
         <input type="text" id="nama" placeholder="Nama Lengkap">
+        <input type="text" id="nik" placeholder="NIK">
         <input type="email" id="email" placeholder="Email">
         <input type="text" id="telepon" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Nomor Telepon">
+        <label for="">Foto KTP</label>
+        <input type="file" id="foto_ktp">
         <button class="btn" id="Lanjutkan">Lanjutkan</button>
     </div>
     <span style="text-align: center;">Sudah Register? <a href="{{ url('login') }}"> Login</a></span>
@@ -199,6 +202,7 @@
 
         $('#Lanjutkan').click(function() {
             const nama = $('#nama').val();
+            const nik = $('#nik').val();
             const email = $('#email').val();
             const telepon = $('#telepon').val();
 
@@ -210,6 +214,8 @@
                     nama: nama,
                     email: email,
                     telepon: telepon,
+                    nik: nik,
+
                     type: 'register',
                     _token: "{{ csrf_token() }}"
                 },
@@ -243,26 +249,39 @@
         $('#verifikasiOTP').click(function() {
             $("#loading").show();
             const nama = $('#nama').val();
+            const nik = $('#nik').val();
             const email = $('#email').val();
             const telepon = $('#telepon').val();
-           const otp =
+
+            let formData = new FormData();
+
+            // text field
+            formData.append('nama', $('#nama').val());
+            formData.append('nik', $('#nik').val());
+            formData.append('email', $('#email').val());
+            formData.append('telepon', $('#telepon').val());
+                        // file
+            let file = $('#foto_ktp')[0].files[0];
+            formData.append('foto_ktp', file);
+            const otp =
                 $("#otp1").val() +
                 $("#otp2").val() +
                 $("#otp3").val() +
                 $("#otp4").val();
+            formData.append('otp', otp);
+            formData.append('type', "register");
+            formData.append('_token', "{{ csrf_token() }}");
+
+
+
+
 
             $.ajax({
                 url: "/register/check-otp",
                 type: "POST",
-                data: {
-                    nama: nama,
-                    email: email,
-                    telepon: telepon,
-
-                    otp: otp,
-                    type: "register",
-                    _token: "{{ csrf_token() }}"
-                },
+                data: formData,
+                contentType: false,   // WAJIB
+                processData: false,   // WAJIB
                 success: function(res) {
                     $("#loading").hide();
 

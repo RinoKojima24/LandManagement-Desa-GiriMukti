@@ -8,135 +8,167 @@ namespace App\Http\Controllers;
     use App\Helpers\NotificationHelper;
 use App\Helpers\WaHelpers;
 use App\Http\Requests\PengajuanSuratRequest;
+use App\Models\BeritaAcara;
+use App\Models\HistoryChat;
+use App\Models\PernyataanPemasanganTenda;
+use App\Models\PernyataanPenguasaan;
 use App\Models\SuratKeterangan;
 use App\Models\SuratPermohonan;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
-    class PengajuanSuratController extends Controller
-    {
-        public function index(Request $request){
+class PengajuanSuratController extends Controller {
+    public function index(Request $request){
 
         if(!isset($_GET['tipe_surat']) ) {
             return redirect('berkas?tipe_surat=0');
         }
-    try{
-        // Filter parameters
-        $status = $request->input('status');
-        $jenis_surat_id = $request->input('jenis_surat');
-        $search = $request->input('search');
-        $tanggal_dari = $request->input('tanggal_dari');
-        $tanggal_sampai = $request->input('tanggal_sampai');
-        $jenis_kelamin = $request->input('jenis_kelamin');
-        $surat_keterangan = [];
-        $surat_permohonan = [];
+        try{
+            // Filter parameters
+            $status = $request->input('status');
+            $jenis_surat_id = $request->input('jenis_surat');
+            $search = $request->input('search');
+            $tanggal_dari = $request->input('tanggal_dari');
+            $tanggal_sampai = $request->input('tanggal_sampai');
+            $jenis_kelamin = $request->input('jenis_kelamin');
+            $surat_keterangan = [];
+            $surat_permohonan = [];
 
-        // Query Surat Keterangan dengan filter
+            // Query Surat Keterangan dengan filter
 
-        if($_GET['tipe_surat'] == "1") {
-            $query_keterangan = DB::table('surat_keterangan as sk')
-                ->leftJoin('jenis_surat as js', 'js.id_jenis_surat', '=', 'sk.id_jenis_surat')
-                ->select([
-                    'sk.*',
-                    'js.name',
-                    'js.jenis_surat',
-                    DB::raw("CONCAT('surat ', js.name, ' ', js.jenis_surat) AS jenis_surat_lengkap")
-                ]);
+            if($_GET['tipe_surat'] == "1") {
+                $query_keterangan = DB::table('surat_keterangan as sk')
+                    ->leftJoin('jenis_surat as js', 'js.id_jenis_surat', '=', 'sk.id_jenis_surat')
+                    ->select([
+                        'sk.*',
+                        'js.name',
+                        'js.jenis_surat',
+                        DB::raw("CONCAT('surat ', js.name, ' ', js.jenis_surat) AS jenis_surat_lengkap")
+                    ]);
 
-            // Apply filters untuk surat keterangan
-            if ($status) {
-                $query_keterangan->where('sk.status', $status);
+                // Apply filters untuk surat keterangan
+                if ($status) {
+                    $query_keterangan->where('sk.status', $status);
+                }
+
+                if ($jenis_surat_id) {
+                    $query_keterangan->where('sk.id_jenis_surat', $jenis_surat_id);
+                }
+
+                if ($search) {
+                    $query_keterangan->where(function($q) use ($search) {
+                        $q->where('sk.nik', 'like', "%{$search}%")
+                        ->orWhere('sk.nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('sk.keperluan', 'like', "%{$search}%");
+                    });
+                }
+
+                if ($tanggal_dari) {
+                    $query_keterangan->whereDate('sk.created_at', '>=', $tanggal_dari);
+                }
+
+                if ($tanggal_sampai) {
+                    $query_keterangan->whereDate('sk.created_at', '<=', $tanggal_sampai);
+                }
+
+                if ($jenis_kelamin) {
+                    $query_keterangan->where('sk.jenis_kelamin', $jenis_kelamin);
+                }
+
+                $surat_keterangan = $query_keterangan->orderBy('sk.created_at', 'desc')->get();
             }
 
-            if ($jenis_surat_id) {
-                $query_keterangan->where('sk.id_jenis_surat', $jenis_surat_id);
-            }
+            if($_GET['tipe_surat'] == "0") {
+                // Query Surat Permohonan dengan filter
+                // $query_permohonan = DB::table('surat_permohonans as sp')
+                //     ->leftJoin('jenis_surat as js', 'js.id_jenis_surat', '=', 'sp.id_jenis_surat')
+                //     ->select([
+                //         'sp.*',
+                //         'js.name',
+                //         'js.jenis_surat',
+                //         DB::raw("CONCAT('surat ', js.jenis_surat, ' ', js.name) AS jenis_surat_lengkap")
+                //     ]);
 
-            if ($search) {
-                $query_keterangan->where(function($q) use ($search) {
-                    $q->where('sk.nik', 'like', "%{$search}%")
-                    ->orWhere('sk.nama_lengkap', 'like', "%{$search}%")
-                    ->orWhere('sk.keperluan', 'like', "%{$search}%");
-                });
-            }
+                // // Apply filters untuk surat permohonan
+                // if ($status) {
+                //     $query_permohonan->where('sp.status', $status);
+                // }
 
-            if ($tanggal_dari) {
-                $query_keterangan->whereDate('sk.created_at', '>=', $tanggal_dari);
-            }
+                // if ($jenis_surat_id) {
+                //     $query_permohonan->where('sp.id_jenis_surat', $jenis_surat_id);
+                // }
 
-            if ($tanggal_sampai) {
-                $query_keterangan->whereDate('sk.created_at', '<=', $tanggal_sampai);
-            }
+                // if ($search) {
+                //     $query_permohonan->where(function($q) use ($search) {
+                //         $q->where('sp.nik', 'like', "%{$search}%")
+                //         ->orWhere('sp.nama_lengkap', 'like', "%{$search}%");
+                //     });
+                // }
 
-            if ($jenis_kelamin) {
-                $query_keterangan->where('sk.jenis_kelamin', $jenis_kelamin);
-            }
+                // if ($tanggal_dari) {
+                //     $query_permohonan->whereDate('sp.created_at', '>=', $tanggal_dari);
+                // }
 
-            $surat_keterangan = $query_keterangan->orderBy('sk.created_at', 'desc')->get();
+                // if ($tanggal_sampai) {
+                //     $query_permohonan->whereDate('sp.created_at', '<=', $tanggal_sampai);
+                // }
+
+                // if ($jenis_kelamin) {
+                //     $query_permohonan->where('sp.jenis_kelamin', $jenis_kelamin);
+                // }
+
+                $query_permohonan = SuratPermohonan::orderBy('created_at', 'desc');
+                if ($tanggal_dari) {
+                    $query_permohonan->whereDate('created_at', '>=', $tanggal_dari);
+                }
+
+                if ($tanggal_sampai) {
+                    $query_permohonan->whereDate('created_at', '<=', $tanggal_sampai);
+                }
+                $surat_permohonan = $query_permohonan->get();
+
+            }
+            // dd($surat_permohonan);
+            // Get jenis surat untuk dropdown filter
+            $jenis_surat_list = DB::table('jenis_surat')->get();
+
+            // dd(count($surat_permohonan));
+
+            return view('web.berkas', compact(
+                'surat_keterangan',
+                'surat_permohonan',
+                'jenis_surat_list'
+            ));
+
+        } catch(\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        if($_GET['tipe_surat'] == "0") {
-            // Query Surat Permohonan dengan filter
-            $query_permohonan = DB::table('surat_permohonan as sp')
-                ->leftJoin('jenis_surat as js', 'js.id_jenis_surat', '=', 'sp.id_jenis_surat')
-                ->select([
-                    'sp.*',
-                    'js.name',
-                    'js.jenis_surat',
-                    DB::raw("CONCAT('surat ', js.jenis_surat, ' ', js.name) AS jenis_surat_lengkap")
-                ]);
-
-            // Apply filters untuk surat permohonan
-            if ($status) {
-                $query_permohonan->where('sp.status', $status);
-            }
-
-            if ($jenis_surat_id) {
-                $query_permohonan->where('sp.id_jenis_surat', $jenis_surat_id);
-            }
-
-            if ($search) {
-                $query_permohonan->where(function($q) use ($search) {
-                    $q->where('sp.nik', 'like', "%{$search}%")
-                    ->orWhere('sp.nama_lengkap', 'like', "%{$search}%");
-                });
-            }
-
-            if ($tanggal_dari) {
-                $query_permohonan->whereDate('sp.created_at', '>=', $tanggal_dari);
-            }
-
-            if ($tanggal_sampai) {
-                $query_permohonan->whereDate('sp.created_at', '<=', $tanggal_sampai);
-            }
-
-            if ($jenis_kelamin) {
-                $query_permohonan->where('sp.jenis_kelamin', $jenis_kelamin);
-            }
-
-            $surat_permohonan = $query_permohonan->orderBy('sp.created_at', 'desc')->get();
-
-        }
-
-        // Get jenis surat untuk dropdown filter
-        $jenis_surat_list = DB::table('jenis_surat')->get();
-
-        // dd(count($surat_permohonan));
-
-        return view('web.berkas', compact(
-            'surat_keterangan',
-            'surat_permohonan',
-            'jenis_surat_list'
-        ));
-
-    } catch(\Exception $e) {
-        return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
-}
 
 public function edit($id) {
-    if($_GET['tipe_surat'] == "1") {
-        $data['query'] = SuratKeterangan::where('id_permohonan', $id)->first();
-    } else {
-        $data['query'] = SuratPermohonan::where('id_permohonan', $id)->first();
+    if(isset($_GET['tipe_surat'])) {
+        if($_GET['tipe_surat'] == "1") {
+            $data['query'] = SuratKeterangan::where('id_permohonan', $id)->first();
+        } else {
+            $data['query'] = SuratPermohonan::where('id', $id)->first();
+            // dd($data);
+        }
+    }
+
+    if(isset($_GET['list_surat'])) {
+        if(Auth::user()->role != "admin") {
+            return redirect()->back();
+        }
+        $data['query'] = SuratPermohonan::where('id', $id)->first();
+
+        if($_GET['list_surat'] == "1") {
+            $data['surat'] = PernyataanPemasanganTenda::where('surat_permohonan_id', $id)->first();
+        } else if($_GET['list_surat'] == "2") {
+            $data['surat'] = BeritaAcara::where('surat_permohonan_id', $id)->first();
+        } else if($_GET['list_surat'] == "3") {
+            $data['surat'] = PernyataanPenguasaan::where('surat_permohonan_id', $id)->first();
+        }
+        return view('web.berkas.form', $data);
 
     }
 
@@ -145,25 +177,170 @@ public function edit($id) {
 }
 
 
+    public function lihatFile()
+    {
+        // dd("ASD");
+        $path = storage_path('app/private/' . $_GET['file_nama']);
+        // dd($path);
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path);
+    }
+
 public function update(Request $request, $id) {
-    if($_GET['tipe_surat'] == "1") {
-        $data['query'] = SuratKeterangan::where('id_permohonan', $id)->update([
-            'status' => $request->status
-        ]);
 
-        // dd( $request->status);
+    // dd("ASD");
+    if(isset($_GET['tipe_surat'])) {
+        if($_GET['tipe_surat'] == "1") {
+            $data['query'] = SuratKeterangan::where('id_permohonan', $id)->update([
+                'status' => $request->status
+            ]);
 
-    } else {
-        $test = SuratPermohonan::where('id_permohonan', $id)->update([
-            'status' => $request->status
+            // dd( $request->status);
+
+        } else if($_GET['tipe_surat'] == "0") {
+
+            $test = SuratPermohonan::where('id', $id)->update([
+                'status' => $request->status
+            ]);
+
+        }
+
+
+        HistoryChat::create([
+            'surat_id' => $id,
+            'pesan' => $request->pesan,
+            'status' => $request->status_surat,
         ]);
+        WaHelpers::sendWa($request->no_wa, $request->pesan);
+
+
+        return redirect()->back()->with('success', 'Surat berhasil dikirim ke pengaju dan disimpan');
+    }
+
+    if(isset($request->list_surat)) {
+        if($request->list_surat == "1") {
+            if($request->surat_id != "") {
+                $tenda = PernyataanPemasanganTenda::find($request->surat_id);
+            } else {
+                $tenda = new PernyataanPemasanganTenda;
+            }
+
+            $tenda->surat_permohonan_id = $id;
+            $tenda->sebelah_utara_nama = $request->sebelah_utara_nama;
+            $tenda->sebelah_utara_nik = $request->sebelah_utara_nik;
+
+            $tenda->sebelah_timur_nama = $request->sebelah_timur_nama;
+            $tenda->sebelah_timur_nik = $request->sebelah_timur_nik;
+
+            $tenda->sebelah_selatan_nama = $request->sebelah_selatan_nama;
+            $tenda->sebelah_selatan_nik = $request->sebelah_selatan_nik;
+
+            $tenda->sebelah_barat_nama = $request->sebelah_barat_nama;
+            $tenda->sebelah_barat_nik = $request->sebelah_barat_nik;
+
+            $tenda->pembuat_pernyataan = $request->pembuat_pernyataan;
+
+            $tenda->rt = $request->rt;
+            $tenda->nama_ketua_rt = $request->nama_ketua_rt;
+            $tenda->save();
+        }
+
+        if($request->list_surat == "2") {
+            if($request->surat_id != "") {
+                $berita = BeritaAcara::find($request->surat_id);
+            } else {
+                $berita = new BeritaAcara;
+            }
+
+            $berita->surat_permohonan_id = $id;
+            $berita->tanggal_dilaksanakan = $request->tanggal_dilaksanakan;
+
+            $berita->nama_1 = $request->nama_1;
+            $berita->nip_1 = $request->nip_1;
+            $berita->jabatan_1 = $request->jabatan_1;
+            $berita->tugas_1 = $request->tugas_1;
+
+            $berita->nama_2 = $request->nama_2;
+            $berita->nip_2 = $request->nip_2;
+            $berita->jabatan_2 = $request->jabatan_2;
+            $berita->tugas_2 = $request->tugas_2;
+
+            $berita->save();
+        }
+
+        if($request->list_surat == "3") {
+            if($request->surat_id != "") {
+                $pp = PernyataanPenguasaan::find($request->surat_id);
+            } else {
+                $pp = new PernyataanPenguasaan;
+            }
+
+            $pp->surat_permohonan_id = $id;
+            $pp->tahun_kuasa = $request->tahun_kuasa;
+            $pp->nama_peroleh = $request->nama_peroleh;
+            $pp->pembuat_pernyataan = $request->pembuat_pernyataan;
+
+            $pp->nama_saksi_1 = $request->nama_saksi_1;
+            $pp->nik_saksi_1 = $request->nik_saksi_1;
+
+            $pp->nama_saksi_2 = $request->nama_saksi_2;
+            $pp->nik_saksi_2 = $request->nik_saksi_2;
+
+            $pp->nomor_rt = $request->nomor_rt;
+            $pp->tanggal_rt = $request->tanggal_rt;
+            $pp->rt = $request->rt;
+            $pp->nama_rt = $request->nama_rt;
+
+            $pp->nomor_kades = $request->nomor_kades;
+            $pp->tanggal_kades = $request->tanggal_kades;
+
+            $pp->nomor_camat = $request->nomor_camat;
+            $pp->tanggal_penajam = $request->tanggal_penajam;
+
+            $pp->save();
+        }
+
+
+        return redirect()->to("berkas/".$id."?tipe_surat=0")->with('success', 'Surat berhasil disimpan');
 
     }
 
-    WaHelpers::sendWa($request->no_wa, $request->pesan);
 
+}
 
-    return redirect()->back()->with('success', 'Surat berhasil dikirim ke pengaju dan disimpan');
+public function history($id) {
+    $data['tipe_surat'] = $_GET['tipe_surat'];
+    $data['surat_id'] = $id;
+    $data['chat'] = HistoryChat::where('surat_id', $id)->where('status', $_GET['status'])->orderBy('created_at', 'DESC')->paginate(15);
+
+    return view('web.berkas.history', $data);
+}
+
+public function print($id) {
+    if(isset($_GET['list_surat'])) {
+        $data['query'] = SuratPermohonan::where('id', $id)->first();
+
+        $namafile = "Surat Permoghonan.pdf";
+        if($_GET['list_surat'] == "1") {
+            $data['surat'] = PernyataanPemasanganTenda::where('surat_permohonan_id', $id)->first();
+            $namafile = "Surat Pernyataan.pdf";
+        } else if($_GET['list_surat'] == "2") {
+            $data['surat'] = BeritaAcara::where('surat_permohonan_id', $id)->first();
+            $namafile = "Surat Pernyataan Penguasaan.pdf";
+        } else if($_GET['list_surat'] == "3") {
+            $data['surat'] = PernyataanPenguasaan::where('surat_permohonan_id', $id)->first();
+        }
+        // Load view 'pdf.invoice' dengan data
+        $pdf = Pdf::loadView('web.berkas.print', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        // Mengunduh file PDF
+        return $pdf->stream($namafile);
+
+    }
 
 }
         /**

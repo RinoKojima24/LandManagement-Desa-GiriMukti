@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
                 'email' => 'required',
             ]);
 
-            $user = User::where('email', $request->email)->orWhere('no_telepon', $request->email)->first();
+            $user = User::where('email', $request->email)->orWhere('no_telepon', $request->email)->orWhere('nik', $request->email)->first();
 
             if($user) {
                 if($user->is_active == 1) {
@@ -43,7 +43,11 @@ class AuthenticatedSessionController extends Controller
                     ]);
                 } else {
                     // Generate OTP 4 digit
-                    $otp = rand(1000, 9999);
+                    if($user->demo == 1) {
+                        $otp = 1111;
+                    } else {
+                        $otp = rand(1000, 9999);
+                    }
 
                     // Simpan OTP ke session
                     session(['otp' => $otp]);
@@ -71,7 +75,8 @@ class AuthenticatedSessionController extends Controller
             $request->validate([
                 'nama' => 'required',
                 'email' => 'required|email',
-                'telepon' => 'required'
+                'telepon' => 'required',
+                'nik' => 'required'
             ]);
 
             // Generate OTP 4 digit
@@ -101,17 +106,27 @@ class AuthenticatedSessionController extends Controller
 
         if ($request->otp == session('otp')) {
 
-
             if($request->type == "register") {
+
+                if ($request->hasFile('foto_ktp')) {
+                    $gambarFile = $request->file('foto_ktp');
+                    $gambarPath = $gambarFile->store('foto_ktp');
+                }
+
                 $user = User::create([
                     'email' => $request->email,
                     'nama_petugas' => $request->nama,
                     'no_telepon' => $request->telepon,
+                    'nik' => $request->nik,
+                    'foto_ktp' => $gambarPath,
+
                     'role' => 'warga',
                     'is_active' => false,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+
 
                 return response()->json([
                     'status' => 'ok',
@@ -122,7 +137,7 @@ class AuthenticatedSessionController extends Controller
 
              if($request->type == "login") {
                 $user = User::where('email', $request->email)->orWhere('no_telepon', $request->email)->first();
-                Auth::login($user);
+                Auth::login($user, true);
 
                 return response()->json([
                     'status' => 'ok',

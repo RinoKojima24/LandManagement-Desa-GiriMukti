@@ -83,15 +83,83 @@
         <!-- Results List -->
         @if($_GET['tipe_surat'] == "0")
             <div id="resultsList">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="p-3"><h3>Surat Pengajuan Tanah</h3></div>
+                            <div class="p-1"></div>
+                            <div class="p-1">
+                                <a href="{{ url('berkas/'.$query->id.'/print?list_surat=0') }}" target="_blank" class="btn btn-success">Print</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="p-3"><h3>Surat Pernyataan Pemasangan Tanda Batas dan Persetujuan Pihak Yang Berbatasan</h3></div>
+                            <div class="p-1"></div>
+                            <div class="p-1">
+                                @if(Auth::user()->role == "admin")
+                                    <a href="{{ url('berkas/'.$query->id.'?list_surat=1') }}" class="btn btn-primary mr-2">Edit</a>
+                                @endif
+                                @if(isset($query->Pernyataan1))
+                                    <a href="{{ url('berkas/'.$query->id.'/print?list_surat=1') }}" target="_blank" class="btn btn-success">Print</a>
+                                @else
+                                    Surat Belum dibuat!
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="p-3"><h3>Berita Acara Pengukuran Bidang Tanah</h3></div>
+                            <div class="p-1"></div>
+                            <div class="p-1">
+                                @if(Auth::user()->role == "admin")
+                                    <a href="{{ url('berkas/'.$query->id.'?list_surat=2') }}" class="btn btn-primary mr-2">Edit</a>
+                                @endif
+                                @if(isset($query->BeritaAcara))
+                                    <a href="{{ url('berkas/'.$query->id.'/print?list_surat=2') }}" target="_blank" class="btn btn-success">Print</a>
+                                @else
+                                    Surat Belum dibuat!
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="p-3"><h3>SURAT PERNYATAAN PENGUASAAN FISIK BIDANG TANAH</h3></div>
+                            <div class="p-1"></div>
+                            <div class="p-1">
+                                @if(Auth::user()->role == "admin")
+                                    <a href="{{ url('berkas/'.$query->id.'?list_surat=3') }}" class="btn btn-primary mr-2">Edit</a>
+                                @endif
+                                @if(isset($query->Pernyataan2))
+                                    <a href="{{ url('berkas/'.$query->id.'/print?list_surat=3') }}" target="_blank" class="btn btn-success">Print</a>
+                                @else
+                                    Surat Belum dibuat!
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-sm-12 col-md-6">
                         <table class="table table-borderless">
                             <tr><td><span style="font-size: 20px;"><b>NIK : </b>{{ $query->nik }}</span></td></tr>
-                            <tr><td><span style="font-size: 20px;"><b>Nama : </b>{{ $query->nama_lengkap }}</span></td></tr>
-                            <tr><td><span style="font-size: 20px;"><b>No.Whatsapp : </b>{{ $query->no_wa }}</span></td></tr>
-                            <tr><td><span style="font-size: 20px;"><b>Jenis Kelamin : </b>{{ $query->jenis_kelamin == "L" ? "Laki - Laki" : "Perempuan" }}</span></td></tr>
+                            <tr><td><span style="font-size: 20px;"><b>Nama : </b>{{ $query->nama }}</span></td></tr>
                             <tr><td><span style="font-size: 20px;"><b>Alamat : </b>{{ $query->alamat }}</span></td></tr>
-                            <tr><td><span style="font-size: 20px;"><b>Jenis Surat : </b>{{ $jenis_surat[$query->JenisSurat->name] }}</span></td></tr>
+                            <tr><td><span style="font-size: 20px;"><b>No. Whatsapp : </b>{{ $query->user->no_telepon }}</span></td></tr>
 
                             <tr>
                                 <td>
@@ -107,11 +175,13 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <form action="{{ url('berkas/'.$query->id_permohonan.'?tipe_surat=0') }}" method="post">
+                                    <form action="{{ url('berkas/'.$query->id.'?tipe_surat=0') }}" method="post">
                                         @csrf
                                         @method('PUT')
                                         <h1>Perubahan Status Pengajuan : </h1>
-                                        <input type="hidden" name="no_wa" value="{{ $query->no_wa }}">
+                                        <input type="hidden" name="no_wa" value="{{ $query->user->no_telepon }}">
+                                        <input type="hidden" name="status_surat" value="surat">
+
                                         <div class="form-group">
                                             <label for=""><b>Status : </b></label>
                                             <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
@@ -127,8 +197,13 @@
                                             <textarea name="pesan" class="form-control" id="" cols="30" rows="5"></textarea>
                                         </div>
 
-                                        <div class="form-group">
-                                            <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                        <div class="form-group row">
+                                            <div class="col-sm-6">
+                                                <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+                                            </div>
                                         </div>
                                     </form>
                                 </td>
@@ -138,26 +213,13 @@
                     <div class="col-sm-12 col-md-6">
                         <table class="table table-borderless">
                             <tr><td><span style="font-size: 20px;"><b>KTP : </b></span></td></tr>
-                            <tr><td><img src="{{ url('storage/'.$query->ktp) }}" alt=""></td></tr>
+                            <tr><td><img src="{{ url('berkass/file?file_nama='.$query->ktp) }}" alt=""></td></tr>
                             <tr><td><span style="font-size: 20px;"><b>Dokumen Pendukung : </b></span></td></tr>
-                            <tr><td><img src="{{ url('storage/'.$query->dokumen_pendukung) }}" alt=""></td></tr>
+                            <tr><td><img src="{{ url('berkass/file?file_nama='.$query->dokumen_pendukung) }}" alt=""></td></tr>
                         </table>
                     </div>
 
                 </div>
-                <table>
-                    <tr>
-                        <td></td>
-                    </tr>
-                </table>
-                <!-- Empty State -->
-                {{-- <div class="bg-white rounded-lg p-12 text-center shadow-sm">
-                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Data Ditemukan</h3>
-                    <p class="text-gray-500">Coba ubah filter atau kata kunci pencarian Anda</p>
-                </div> --}}
             </div>
         @endif
 
@@ -193,6 +255,8 @@
                                         @method('PUT')
                                         <h1>Perubahan Status Pengajuan : </h1>
                                         <input type="hidden" name="no_wa" value="{{ $query->no_wa }}">
+                                        <input type="hidden" name="status_surat" value="keterangan">
+
                                         <div class="form-group">
                                             <label for=""><b>Status : </b></label>
                                             <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
@@ -208,8 +272,13 @@
                                             <textarea name="pesan" class="form-control" id="" cols="30" rows="5"></textarea>
                                         </div>
 
-                                        <div class="form-group">
-                                            <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                        <div class="form-group row">
+                                            <div class="col-sm-6">
+                                                <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <a href="{{ url('history_chat/'.$query->id_permohonan.'?status=keterangan&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+                                            </div>
                                         </div>
                                     </form>
                                 </td>

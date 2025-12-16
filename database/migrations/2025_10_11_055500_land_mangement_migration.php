@@ -90,25 +90,25 @@ return new class extends Migration
         });
 
         // 7. Surat Permohonan Table
-        Schema::create('surat_permohonan', function (Blueprint $table) {
-            $table->id('id_permohonan');
-            $table->string('nik', 16);
-            $table->string('nama_lengkap', 100);
-            $table->enum('jenis_kelamin', ['L', 'P']);
-            $table->string('alamat', 244);
-            $table->string('ktp')->nullable();
-            $table->string('dokumen_pendukung')->nullable();
-            // $table->unsignedInteger('id_jenis_surat')->nullable();
-            $table->enum('status', ['pending', 'verifikasi', 'reject'])->default('pending');
-            $table->foreignId('created_by')->nullable()->constrained('users');
-            $table->timestamps();
+        // Schema::create('surat_permohonan', function (Blueprint $table) {
+        //     $table->id('id_permohonan');
+        //     $table->string('nik', 16);
+        //     $table->string('nama_lengkap', 100);
+        //     $table->enum('jenis_kelamin', ['L', 'P']);
+        //     $table->string('alamat', 244);
+        //     $table->string('ktp')->nullable();
+        //     $table->string('dokumen_pendukung')->nullable();
+        //     // $table->unsignedInteger('id_jenis_surat')->nullable();
+        //     $table->enum('status', ['pending', 'verifikasi', 'reject'])->default('pending');
+        //     $table->foreignId('created_by')->nullable()->constrained('users');
+        //     $table->timestamps();
 
-            // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+        //     // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
 
-            $table->unsignedBigInteger('id_jenis_surat')->nullable();
-            // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
+        //     $table->unsignedBigInteger('id_jenis_surat')->nullable();
+        //     // $table->foreign('id_jenis_surat')->references('id_jenis_surat')->on('jenis_surat');
 
-        });
+        // });
 
         // 8. Wilayah Administratif Table
         Schema::create('wilayah_administratif', function (Blueprint $table) {

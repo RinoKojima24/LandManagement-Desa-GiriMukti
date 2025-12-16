@@ -20,8 +20,24 @@ return new class extends Migration
             $table->string('panjang');
             $table->string('lebar');
             $table->string('peruntukan');
+
+            $table->string('foto_denah');
+
+            $table->string('skala');
+            $table->string('penjelasan');
+            $table->string('nama_jalan');
+
+            $table->text('alamat');
+            // $table->datetime('tanggal_pengecekan');
+
+
+
+
+
+
             $table->string('titik_kordinat');
             $table->text('titik_kordinat_polygon');
+
 
             // $table->string('titik_kordinat_1');
             // $table->string('titik_kordinat_2');

@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AntreanController;
 use App\Http\Controllers\KritikSaranController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\PengajuanSuratController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -14,10 +15,13 @@ use App\Http\Controllers\TanahController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PermohonanSuratController;
+use App\Http\Controllers\WargaController;
 use App\Models\PetaTanah;
+use App\Models\SuratPermohonan;
 use App\Models\User;
 use Database\Seeders\NontificationFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -99,7 +103,22 @@ Route::middleware('guest')->group(function () {
     // })->name('guest.home');
 
     Route::get('/', fn() => view('Auth.login'))->name('guest.home');
+    Route::get('/test', function() {
+        // $pesan = "Ayam\nsapi\nkambing";
+        // WaHelpers::sendWa('081212379429', $pesan);
+    });
 
+});
+    Route::get('/offline', function () {
+    return view('offline');
+    });
+// Logout
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+// ===========================
+// AUTHENTICATED USERS
+// ===========================
+Route::middleware(['auth'])->group(function () {
 
     Route::get('/pengajuan_surat', function() {
         // Kirim variabel ke view
@@ -110,25 +129,21 @@ Route::middleware('guest')->group(function () {
         return view('guest.pengajuan_keterangan');
     });
 
-    Route::get('/test', function() {
-        // $pesan = "Ayam\nsapi\nkambing";
-        // WaHelpers::sendWa('081212379429', $pesan);
-    });
+
 
     Route::post('/pengajuan', function(Request $request) {
-        try {
             // Validasi request
-            $request->validate([
-                'nik' => 'required|string|max:16',
-                'namaLengkap' => 'required|string|max:100',
-                'jenisKelamin' => 'required|in:L,P',
-                'alamat' => 'required|string|max:244',
-                'jenis_surat' => 'required|string',
-                'ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-                'dokumen_pendukung' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-                'keperluan' => 'nullable|string|max:255',
-                'no_wa' => 'required',
-            ]);
+            // $request->validate([
+            //     'nik' => 'required|string|max:16',
+            //     'namaLengkap' => 'required|string|max:100',
+            //     'jenisKelamin' => 'required|in:L,P',
+            //     'alamat' => 'required|string|max:244',
+            //     'jenis_surat' => 'required|string',
+            //     'ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            //     'dokumen_pendukung' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            //     'keperluan' => 'nullable|string|max:255',
+            //     'no_wa' => 'required',
+            // ]);
 
             $path = $request->path();
 
@@ -157,14 +172,14 @@ Route::middleware('guest')->group(function () {
             // Handle upload file KTP
             if ($request->hasFile('ktp')) {
                 $ktpFile = $request->file('ktp');
-                $ktpPath = $ktpFile->store('ktp', 'public');
+                $ktpPath = $ktpFile->store('ktp');
                 $commonData['ktp'] = $ktpPath;
             }
 
             // Handle upload file Dokumen Pendukung
             if ($request->hasFile('dokumen_pendukung')) {
                 $dokumenFile = $request->file('dokumen_pendukung');
-                $dokumenPath = $dokumenFile->store('dokumen_pendukung', 'public');
+                $dokumenPath = $dokumenFile->store('dokumen_pendukung');
                 $commonData['dokumen_pendukung'] = $dokumenPath;
             }
 
@@ -238,13 +253,47 @@ Route::middleware('guest')->group(function () {
             } elseif ($jenisSuratType === 'permohonan') {
                 // Logika untuk surat permohonan
                 $tipe = 'Surat Permohonan';
-                $commonData['id_jenis_surat'] = $jenisSurat->id_jenis_surat;
+                // $commonData['id_jenis_surat'] = $jenisSurat->id_jenis_surat;
                 // Simpan ke tabel surat_permohonan
-                $idPermohonan = DB::table('surat_permohonan')->insertGetId($commonData);
+                // $idPermohonan = DB::table('surat_permohonan')->insertGetId($commonData);
+
+                $idPermohonan = SuratPermohonan::create([
+                    'user_id' => Auth::user()->id,
+                    'nama' => $request->nama,
+                    'nik' => $request->nik,
+                    'tempat' => $request->tempat,
+                    'tanggal_lahir' => $request->tanggal_lahir,
+                    'pekerjaan' => $request->pekerjaan,
+                    'agama' => $request->agama,
+                    'alamat' => $request->alamat,
+                    'rt_rw' => $request->rt_rw,
+                    'jalan' => $request->jalan,
 
 
-                $pesan = "Pengajuan Surat Tanah : \nNIK : {$commonData['nik']}\nNama Lengkap : {$commonData['nama_lengkap']}\nJenis Surat : {$jenisSurat->name}\nNomor Urut : {$idPermohonan}";
-                WaHelpers::sendWa($commonData['no_wa'], $pesan);
+                    'panjang' => $request->panjang,
+                    'lebar' => $request->lebar,
+                    'luas' => $request->luas,
+
+                    'kondisi_fisik' => $request->panjang,
+                    'dasar_perolehan' => $request->lebar,
+
+                    'sebelah_utara' => $request->sebelah_utara,
+                    'sebelah_timur' => $request->sebelah_timur,
+
+                    'sebelah_selatan' => $request->sebelah_selatan,
+                    'sebelah_barat' => $request->sebelah_barat,
+
+                    'tahun_dikuasai' => $request->tahun_dikuasai,
+
+                    'ktp' => $commonData['ktp'],
+                    'dokumen_pendukung' => $commonData['dokumen_pendukung'],
+
+                ]);
+
+
+
+                $pesan = "Pengajuan Surat Tanah : \nNIK : {$request->nik}\nNama Lengkap : {$request->nama}\nJenis Surat : {$jenisSurat->name}\nNomor Urut : {$idPermohonan}";
+                WaHelpers::sendWa(Auth::user()->no_telepon, $pesan);
                 // NotificationHelper::newLetterRequest(auth()->id(),$idPermohonan,'surat tanah');
 
             } else {
@@ -253,25 +302,14 @@ Route::middleware('guest')->group(function () {
 
             DB::commit();
 
-            return redirect()->back()->with('success', "{$tipe} berhasil dikirim dengan ID: {$idPermohonan}");
+            return redirect()->back()->with('success', "{$tipe} berhasil dikirim dengan ID: {$idPermohonan->id}");
+        try {
 
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     });
-});
-    Route::get('/offline', function () {
-    return view('offline');
-    });
-// Logout
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-// ===========================
-// AUTHENTICATED USERS
-// ===========================
-Route::middleware(['auth'])->group(function () {
-
     // ---------- HOME ----------
         Route::get('/home', function () {
             $posts = DB::table('posts')
@@ -279,6 +317,7 @@ Route::middleware(['auth'])->group(function () {
                 ->orderBy('created_at', 'desc')
                 ->limit('4') // tampilkan 4 posting per halaman
                 ->get();
+
 
             return view('web.home', compact('posts'));
         })->name('home');
@@ -323,6 +362,12 @@ Route::middleware(['auth'])->group(function () {
 
     route::get('/info-layanan',[PostController::class,'info_layanan'])->name('info-layanan');
 
+    // ----------- WARGA -----------
+    Route::resource('warga',WargaController::class);
+    Route::resource('operator',OperatorController::class);
+
+    Route::get('/lihat-ktp/{filename}', [WargaController::class, 'lihatKtp']);
+
     // ---------- PROFILE ----------
     Route::controller(ProfileController::class)->group(function () {
         Route::get('/profile', 'index')->name('profile');
@@ -350,12 +395,27 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/reject/{id}', 'reject')->name('surat.reject');
     });
 
+
+        Route::post('/simpan-gambar', function (Request $request) {
+
+            $img = str_replace('data:image/png;base64,', '', $request->image);
+            $img = str_replace(' ', '+', $img);
+            $img = base64_decode($img);
+
+            // simpan ke storage/app/private
+            Storage::put('foto_peta/peta.png', $img);
+
+            return response()->json(['status' => 'ok']);
+        });
     // ---------- TANAH ----------
     Route::controller(TanahController::class)->group(function () {
         Route::get('/tanah', 'data')->name('data.peta');
         Route::post('/tanah', 'store')->name('data.peta.store');
         Route::get('/tanah/{id}/show', 'detail')->name('data.peta.detail');
         Route::get('/tanah/{id}/edit', 'edit')->name('data.peta.edit');
+        Route::get('/tanah/{id}/print', 'print')->name('data.peta.edit');
+
+
 
         Route::put('/tanah/{id}', 'update')->name('data.peta.update');
         Route::delete('/tanah/{id}', 'destroy')->name('data.peta.destroy');
@@ -372,6 +432,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/berkas', 'index')->name('pengajuanSurat.index');
         Route::get('/berkas/{id}', 'edit')->name('pengajuanSurat.edit');
         Route::put('/berkas/{id}', 'update')->name('pengajuanSurat.update');
+        Route::get('/berkas/{id}/print', 'print');
+        Route::get('/berkass/file', 'lihatFile');
+        Route::get('/history_chat/{id}', 'history');
+
+
+
+
+
 
 
         Route::get('/permohonan', 'create')->name('permohonan_form');

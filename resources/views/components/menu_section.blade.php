@@ -6,15 +6,25 @@
 
     {{-- Main Menu: 3 Menu Utama --}}
     <div class="main-menu">
-        <a href="{{ route('permohonan_form') }}" class="menu-item">
+        {{-- <a href="{{ route('permohonan_form') }}" class="menu-item">
+            <i class="fas fa-file-alt"></i>
+            <span>Pengajuan<br>Surat Tanah</span>
+        </a> --}}
+        <a href="{{ url('pengajuan_surat') }}" class="menu-item">
             <i class="fas fa-file-alt"></i>
             <span>Pengajuan<br>Surat Tanah</span>
         </a>
 
-        <a href="{{ route('keterangan_form') }}" class="menu-item">
+        <a href="{{ url('pengajuan_keterangan') }}" class="menu-item">
             <i class="fas fa-file-alt"></i>
             <span>Pengajuan<br>Surat Keterangan</span>
         </a>
+
+
+        {{-- <a href="{{ route('keterangan_form') }}" class="menu-item">
+            <i class="fas fa-file-alt"></i>
+            <span>Pengajuan<br>Surat Keterangan</span>
+        </a> --}}
 
         <a href="{{ url('/tanah') }}" class="menu-item">
             <i class="fas fa-file-invoice"></i>
@@ -24,6 +34,20 @@
 
     {{-- Secondary Menu: 8 Menu Grid --}}
     <div class="secondary-menu">
+        @if(Auth::user()->role == "admin")
+            <a href="{{ url('warga') }}" class="secondary-item">
+                <div class="icon-circle green">
+                    <i class="fas fa-download"></i>
+                </div>
+                <span>Data Warga</span>
+            </a>
+            <a href="{{ url('operator') }}" class="secondary-item">
+                <div class="icon-circle blue">
+                    <i class="fas fa-download"></i>
+                </div>
+                <span>Data Operator</span>
+            </a>
+        @endif
         <a href="{{ route('pengajuanSurat.index') }}" class="secondary-item">
             <div class="icon-circle yellow">
                 <i class="fas fa-search"></i>
@@ -31,12 +55,15 @@
             <span>Cari Berkas</span>
         </a>
 
+        {{--
         <a href="{{ url('/tanah') }}" class="secondary-item">
             <div class="icon-circle green">
                 <i class="fas fa-download"></i>
             </div>
             <span>Swaplopting</span>
-        </a>
+        </a> --}}
+
+
 
         <a href="{{ url('/data-tanah/titik') }}" class="secondary-item">
             <div class="icon-circle purple">

@@ -25,7 +25,15 @@ class User extends Authenticatable
         'password',
         'nama_petugas',
         'no_telepon',
+        'nik',
+        'foto_ktp',
+
+        'nip',
+        'jabatan',
+
+
         'role',
+        'is_active',
         'last_login',
         'avatar',
 

@@ -43,6 +43,7 @@
         <!-- Menu List -->
         <div class="bg-white rounded-2xl shadow-md overflow-hidden">
             <!-- Edit Profile -->
+            @if(Auth::user()->role != "warga" )
             <a href="{{ route('profile.edit') }}" class="flex items-center px-5 py-4 hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100">
                 <div class="mr-4">
                     <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,6 +55,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
             </a>
+            @endif
             <!-- Log Out -->
             <form method="POST" action="{{ route('logout') }}" class="m-0">
                 @csrf
