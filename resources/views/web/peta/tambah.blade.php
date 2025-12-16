@@ -163,6 +163,10 @@ input[type="file"] {
     <div class="map-tools">
         {{-- <button class="tool-btn" onclick="zoomIn()">Zoom +</button>
         <button class="tool-btn" onclick="zoomOut()">Zoom -</button> --}}
+        <select id="mapType" style="top:10px; right:10px;">
+            <option value="street">Peta Biasa</option>
+            <option value="satellite">Satelit</option>
+        </select>
         <button class="tool-btn" id="togglePanelBtn">Data Tanah</button>
         <button class="tool-btn" onclick="goToMyLocation()">📍 Lokasi Saya</button>
         <button class="tool-btn" onclick="addMarkerMode()">📌 Tambah Marker</button>
@@ -664,10 +668,45 @@ input[type="file"] {
         //Maps
         const map = L.map('map').setView([-2.5489, 118.0149], 5);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        // Layer BIASA
+        const streetLayer = L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap',
+                crossOrigin: true
+            }
+        );
+
+        // Layer SATELIT (Esri)
+        const satelliteLayer = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/' +
+            'World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {
+                maxZoom: 19,
+                attribution: '© Esri',
+                crossOrigin: true
+            }
+        );
+
+        // Default layer
+        streetLayer.addTo(map);
+
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     maxZoom: 19,
+        //     attribution: '© OpenStreetMap'
+        // }).addTo(map);
+
+        // Handle combobox
+        document.getElementById('mapType').addEventListener('change', function () {
+            if (this.value === 'satellite') {
+                map.removeLayer(streetLayer);
+                map.addLayer(satelliteLayer);
+            } else {
+                map.removeLayer(satelliteLayer);
+                map.addLayer(streetLayer);
+            }
+        });
 
         let addMarkerActive = false;
         let polygonActive = false;
