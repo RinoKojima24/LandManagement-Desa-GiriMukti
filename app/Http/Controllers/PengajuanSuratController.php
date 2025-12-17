@@ -125,7 +125,13 @@ class PengajuanSuratController extends Controller {
                 if ($tanggal_sampai) {
                     $query_permohonan->whereDate('created_at', '<=', $tanggal_sampai);
                 }
-                $surat_permohonan = $query_permohonan->get();
+
+
+                if(Auth::user()->role == "warga") {
+                    $surat_permohonan = $query_permohonan->where('user_id', Auth::user()->id)->get();
+                } else {
+                    $surat_permohonan = $query_permohonan->get();
+                }
 
             }
             // dd($surat_permohonan);

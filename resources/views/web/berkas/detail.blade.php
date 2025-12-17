@@ -175,37 +175,41 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <form action="{{ url('berkas/'.$query->id.'?tipe_surat=0') }}" method="post">
-                                        @csrf
-                                        @method('PUT')
-                                        <h1>Perubahan Status Pengajuan : </h1>
-                                        <input type="hidden" name="no_wa" value="{{ $query->user->no_telepon }}">
-                                        <input type="hidden" name="status_surat" value="surat">
+                                    @if(Auth::user()->role != "warga")
+                                        <form action="{{ url('berkas/'.$query->id.'?tipe_surat=0') }}" method="post">
+                                            @csrf
+                                            @method('PUT')
+                                            <h1>Perubahan Status Pengajuan : </h1>
+                                            <input type="hidden" name="no_wa" value="{{ $query->user->no_telepon }}">
+                                            <input type="hidden" name="status_surat" value="surat">
 
-                                        <div class="form-group">
-                                            <label for=""><b>Status : </b></label>
-                                            <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
-                                                <option value="">Semua Status</option>
-                                                <option value="pending" {{ old('status', $query->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="verifikasi" {{ old('status', $query->status) == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
-                                                <option value="reject" {{ old('status', $query->status) == 'reject' ? 'selected' : '' }}>Reject</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for=""><b>Pesan untuk yang mengajukan : </b></label>
-                                            <textarea name="pesan" class="form-control" id="" cols="30" rows="5"></textarea>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <div class="col-sm-6">
-                                                <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                            <div class="form-group">
+                                                <label for=""><b>Status : </b></label>
+                                                <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                                    <option value="">Semua Status</option>
+                                                    <option value="pending" {{ old('status', $query->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                    <option value="verifikasi" {{ old('status', $query->status) == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
+                                                    <option value="reject" {{ old('status', $query->status) == 'reject' ? 'selected' : '' }}>Reject</option>
+                                                </select>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+
+                                            <div class="form-group">
+                                                <label for=""><b>Pesan untuk yang mengajukan : </b></label>
+                                                <textarea name="pesan" class="form-control" id="" cols="30" rows="5"></textarea>
                                             </div>
-                                        </div>
-                                    </form>
+
+                                            <div class="form-group row">
+                                                <div class="col-sm-6">
+                                                    <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    @else
+                                        <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+                                    @endif
                                 </td>
                             </tr>
                         </table>
@@ -250,37 +254,41 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <form action="{{ url('berkas/'.$query->id_permohonan.'?tipe_surat=1') }}" method="post">
-                                        @csrf
-                                        @method('PUT')
-                                        <h1>Perubahan Status Pengajuan : </h1>
-                                        <input type="hidden" name="no_wa" value="{{ $query->no_wa }}">
-                                        <input type="hidden" name="status_surat" value="keterangan">
+                                    @if(Auth::user()->role != "warga")
+                                        <form action="{{ url('berkas/'.$query->id_permohonan.'?tipe_surat=1') }}" method="post">
+                                            @csrf
+                                            @method('PUT')
+                                            <h1>Perubahan Status Pengajuan : </h1>
+                                            <input type="hidden" name="no_wa" value="{{ $query->no_wa }}">
+                                            <input type="hidden" name="status_surat" value="keterangan">
 
-                                        <div class="form-group">
-                                            <label for=""><b>Status : </b></label>
-                                            <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
-                                                <option value="">Semua Status</option>
-                                                <option value="pending" {{ old('status', $query->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="verifikasi" {{ old('status', $query->status) == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
-                                                <option value="reject" {{ old('status', $query->status) == 'reject' ? 'selected' : '' }}>Reject</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for=""><b>Pesan untuk yang mengajukan : </b></label>
-                                            <textarea name="pesan" class="form-control" id="" cols="30" rows="5"></textarea>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <div class="col-sm-6">
-                                                <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                            <div class="form-group">
+                                                <label for=""><b>Status : </b></label>
+                                                <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                                    <option value="">Semua Status</option>
+                                                    <option value="pending" {{ old('status', $query->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                    <option value="verifikasi" {{ old('status', $query->status) == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
+                                                    <option value="reject" {{ old('status', $query->status) == 'reject' ? 'selected' : '' }}>Reject</option>
+                                                </select>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <a href="{{ url('history_chat/'.$query->id_permohonan.'?status=keterangan&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+
+                                            <div class="form-group">
+                                                <label for=""><b>Pesan untuk yang mengajukan : </b></label>
+                                                <textarea name="pesan" class="form-control" id="" cols="30" rows="5"></textarea>
                                             </div>
-                                        </div>
-                                    </form>
+
+                                            <div class="form-group row">
+                                                <div class="col-sm-6">
+                                                    <button type="submit" class="btn btn-success">Kirim / Simpan</button>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <a href="{{ url('history_chat/'.$query->id_permohonan.'?status=keterangan&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    @else
+                                        <a href="{{ url('history_chat/'.$query->id_permohonan.'?status=keterangan&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+                                    @endif
                                 </td>
                             </tr>
                         </table>
