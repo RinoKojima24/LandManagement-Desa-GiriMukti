@@ -69,7 +69,7 @@
                         $kordinat = explode(',', ($item->titik_kordinat == "-" ? '0,0' : $item->titik_kordinat));
                     @endphp
 
-                    <h1 style="font-size: 20px;"><b>{{ $item->SuratUkur->kecamatan }}, {{ $item->SuratUkur->provinsi }}, Indonesia</b></h1>
+                    <h1 style="font-size: 20px;"><b>{{ $item->SuratUkur->kecamatan ?? "" }}, {{ $item->SuratUkur->provinsi ?? "" }}, Indonesia</b></h1>
                     <p><br> Lat {{ $kordinat[0] }} <br> Long {{ $kordinat[1] }} <br></p>
                     <hr>
                     <p>{{ date('d/m/Y, H:i:s', strtotime($item->tanggal_pengukuran)) }}</p>
