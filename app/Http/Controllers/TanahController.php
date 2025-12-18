@@ -263,7 +263,12 @@ public function data(Request $request){
             }
 
         }
-        $data['data'] = PetaTanah::where('user_id', $_GET['pemilik'])->orderBy('created_at', 'DESC');
+
+        if($_GET['pemilik'] == 0) {
+            $data['data'] = PetaTanah::orderBy('created_at', 'DESC');
+        } else {
+            $data['data'] = PetaTanah::where('user_id', $_GET['pemilik'])->orderBy('created_at', 'DESC');
+        }
         $data['data'] = $data['data']->get();// Perbaikan: assign hasil get() ke variable
 
 
