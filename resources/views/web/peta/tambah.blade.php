@@ -756,15 +756,17 @@ input[type="file"] {
 
         // ===== AUTO GPS =====
         function autoLocateOnLoad() {
-            if (!navigator.geolocation) return;
+            if(firstofall == 1) {
+                if (!navigator.geolocation) return;
 
-            navigator.geolocation.getCurrentPosition(pos => {
-                let lat = pos.coords.latitude;
-                let lng = pos.coords.longitude;
+                navigator.geolocation.getCurrentPosition(pos => {
+                    let lat = pos.coords.latitude;
+                    let lng = pos.coords.longitude;
 
-                map.setView([lat, lng], 17);
-                L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
-            });
+                    map.setView([lat, lng], 17);
+                    L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+                });
+            }
 
             if(firstofall == 0) {
                 fetch("{{ asset('storage/rt/tanah_69314fb496362.geojson') }}")
