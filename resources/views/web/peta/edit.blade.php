@@ -806,6 +806,36 @@ input[type="file"] {
             }
         });
 
+        const rtList = @json($rtList);
+        const colors = [
+            '#e6194b','#3cb44b','#ffe119','#4363d8','#f58231',
+            '#911eb4','#46f0f0','#f032e6','#bcf60c','#fabebe',
+            '#008080','#e6beff','#9a6324','#fffac8','#800000',
+            '#aaffc3','#808000'
+        ];
+
+        rtList.forEach((rt, index) => {
+            fetch(rt.file)
+                .then(res => res.json())
+                .then(geojson => {
+
+                    const layer = L.geoJSON(geojson, {
+                        style: {
+                            color: colors[index % colors.length],
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.5
+                        },
+                        onEachFeature: (feature, layer) => {
+                            layer.bindPopup(`<b>${rt.nama}</b>`);
+                        }
+                    }).addTo(map);
+
+
+
+                });
+        });
+
         let addMarkerActive = false;
         let polygonActive = false;
 
@@ -819,6 +849,10 @@ input[type="file"] {
         let tempPolygonLine = null;
         let finalJalan = null;
 
+
+        let firstofall = 0;
+
+
         // ===== AUTO GPS =====
         function autoLocateOnLoad() {
             if (!navigator.geolocation) return;
@@ -830,6 +864,30 @@ input[type="file"] {
                 map.setView([lat, lng], 17);
                 L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
             });
+
+            if(firstofall == 0) {
+                fetch("{{ asset('storage/rt/tanah_69314fb496362.geojson') }}")
+                    .then(res => res.json())
+                    .then(geojson => {
+
+                        const rtLayer = L.geoJSON(geojson, {
+                            style: {
+                                color: '#e6194b',
+                                weight: 2,
+                                fillOpacity: 0.5
+                            }
+                        }).addTo(map);
+
+                        // ✅ fokus ke RT
+                        map.fitBounds(rtLayer.getBounds(), {
+                            padding: [30, 30]
+                        });
+
+                        rtLayer.bindPopup("RT. 15").openPopup();
+                });
+
+                    firstofall = 1;
+            }
         }
         window.onload = autoLocateOnLoad;
 

@@ -7,6 +7,7 @@ use App\Models\DikeluarkanSuratUkur;
 use App\Models\PendaftaranPeralihan;
 use App\Models\PendaftaranPertama;
 use App\Models\PetaTanah;
+use App\Models\Rt;
 use App\Models\SuratPermohonan;
 use App\Models\SuratUkur;
 use App\Models\User;
@@ -303,6 +304,14 @@ public function data(Request $request){
             }
 
         }
+        $rt = Rt::orderBy('created_at', 'ASC')->get();
+
+        $data['rtList'] = null;
+        foreach($rt as $a) {
+            $data['rtList'][] = ['nama' => $a->nama, 'file' => asset($a->geojson)];
+        }
+
+        // dd($data['rtList']);
         $data['warga'] = User::where('id', $_GET['pemilik'])->first();
         return view('web.peta.tambah', $data);
     }
@@ -314,7 +323,12 @@ public function data(Request $request){
 
         // $data['warga'] = User::where('role', 'warga')->get();
         $data['warga'] = User::where('id', $_GET['pemilik'])->first();
+        $rt = Rt::orderBy('created_at', 'ASC')->get();
 
+        $data['rtList'] = null;
+        foreach($rt as $a) {
+            $data['rtList'][] = ['nama' => $a->nama, 'file' => asset($a->geojson)];
+        }
         $data['peta'] = PetaTanah::find($id);
         // dd($data['permohonans'][0]->id_permohonan);
         return view('web.peta.edit', $data);
