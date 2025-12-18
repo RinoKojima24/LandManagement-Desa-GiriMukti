@@ -262,42 +262,42 @@ input[type="file"] {
                     <center><h3>HAK MILIK</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
-                        <input type="text" name="hak" value="{{ old('hak', $peta->PendaftaranPertama->hak) }}" class="form-control" placeholder="Hak" id="hak">
+                        <input type="text" name="hak" value="{{ old('hak', $peta->PendaftaranPertama->hak ?? "") }}" class="form-control" placeholder="Hak" id="hak">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
-                        <input type="text" name="nomor" class="form-control" value="{{ old('nomor', $peta->PendaftaranPertama->nomor) }}" placeholder="Nomor" id="nomor">
+                        <input type="text" name="nomor" class="form-control" value="{{ old('nomor', $peta->PendaftaranPertama->nomor ?? "") }}" placeholder="Nomor" id="nomor">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
-                        <input type="text" name="desa_kel" class="form-control" value="{{ old('desa_kel', $peta->PendaftaranPertama->desa_kel) }}" placeholder="Desa Kelurahan" id="desa_kel">
+                        <input type="text" name="desa_kel" class="form-control" value="{{ old('desa_kel', $peta->PendaftaranPertama->desa_kel ?? "") }}" placeholder="Desa Kelurahan" id="desa_kel">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
-                        <input type="date" name="tanggal_berakhirnya_hak" class="form-control" value="{{ old('tanggal_berakhirnya_hak', $peta->PendaftaranPertama->tanggal_berakhirnya_hak) }}" placeholder="Tanggal Berakhirnya Hak" id="tanggal_berakhirnya_hak">
+                        <input type="date" name="tanggal_berakhirnya_hak" class="form-control" value="{{ old('tanggal_berakhirnya_hak', $peta->PendaftaranPertama->tanggal_berakhirnya_hak ?? "") }}" placeholder="Tanggal Berakhirnya Hak" id="tanggal_berakhirnya_hak">
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                     <hr>
                     <center><h3>NIB</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
-                        <input type="text" name="nib" class="form-control"  value="{{ old('nib', $peta->PendaftaranPertama->nib) }}" placeholder="NIB" id="nib">
+                        <input type="text" name="nib" class="form-control"  value="{{ old('nib', $peta->PendaftaranPertama->nib ?? "") }}" placeholder="NIB" id="nib">
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
-                        <input type="text" name="letak_tanah" class="form-control"  value="{{ old('letak_tanah', $peta->PendaftaranPertama->letak_tanah) }}" placeholder="Letak Tanah" id="letak_tanah">
+                        <input type="text" name="letak_tanah" class="form-control"  value="{{ old('letak_tanah', $peta->PendaftaranPertama->letak_tanah ?? "") }}" placeholder="Letak Tanah" id="letak_tanah">
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                     <hr>
                     <center><h3>ASAL HAK</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
-                        <input type="text" name="konversi" value="{{ old('nib', $peta->PendaftaranPertama->konversi) }}" class="form-control" placeholder="Konversi" id="konversi">
+                        <input type="text" name="konversi" value="{{ old('nib', $peta->PendaftaranPertama->konversi ?? "") }}" class="form-control" placeholder="Konversi" id="konversi">
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
-                        <input type="text" name="pemberian_hak" value="{{ old('nib', $peta->PendaftaranPertama->pemberian_hak) }}" class="form-control" placeholder="Pemberian Hak" id="pemberian_hak">
+                        <input type="text" name="pemberian_hak" value="{{ old('nib', $peta->PendaftaranPertama->pemberian_hak ?? "") }}" class="form-control" placeholder="Pemberian Hak" id="pemberian_hak">
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
                         <select name="pemecahan" class="form-control" id="pemecahan">
-                            <option value="0" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak) == "0" ? 'selected' : ''}}>Pemecahan</option>
-                            <option value="1" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak) == "1" ? 'selected' : ''}}>Pemisahan</option>
-                            <option value="2" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak) == "2" ? 'selected' : '' }}>Penggabungan Bidang</option>
+                            <option value="0" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak ?? "") == "0" ? 'selected' : ''}}>Pemecahan</option>
+                            <option value="1" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak ?? "") == "1" ? 'selected' : ''}}>Pemisahan</option>
+                            <option value="2" {{ old('nib', $peta->PendaftaranPertama->pemberian_hak ?? "") == "2" ? 'selected' : '' }}>Penggabungan Bidang</option>
                         </select>
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
@@ -306,48 +306,48 @@ input[type="file"] {
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
                         <label for="">Daftar Isian 202</label>
-                        <input type="date" name="tgl_konversi" value="{{ old('tgl_konversi', $peta->PendaftaranPertama->tgl_konversi) }}" class="form-control" placeholder="Tanggal Konversi" id="tgl_konversi">
-                        <input type="text" name="no_konversi" value="{{ old('no_konversi', $peta->PendaftaranPertama->no_konversi) }}" class="form-control" placeholder="Nomor Konversi" id="no_konversi">
+                        <input type="date" name="tgl_konversi" value="{{ old('tgl_konversi', $peta->PendaftaranPertama->tgl_konversi ?? "") }}" class="form-control" placeholder="Tanggal Konversi" id="tgl_konversi">
+                        <input type="text" name="no_konversi" value="{{ old('no_konversi', $peta->PendaftaranPertama->no_konversi ?? "") }}" class="form-control" placeholder="Nomor Konversi" id="no_konversi">
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
                         <label for="">Surat Keputusan</label>
-                        <input type="date" name="tgl_pemberian_hak" value="{{ old('tgl_pemberian_hak', $peta->PendaftaranPertama->tgl_pemberian_hak) }}" class="form-control" placeholder="Tanggal Keputusan" id="tgl_pemberian_hak">
-                        <input type="text" name="no_pemberian_hak" value="{{ old('no_pemberian_hak', $peta->PendaftaranPertama->no_pemberian_hak) }}" class="form-control" placeholder="Nomor Keputusan" id="no_pemberian_hak">
+                        <input type="date" name="tgl_pemberian_hak" value="{{ old('tgl_pemberian_hak', $peta->PendaftaranPertama->tgl_pemberian_hak ?? "") }}" class="form-control" placeholder="Tanggal Keputusan" id="tgl_pemberian_hak">
+                        <input type="text" name="no_pemberian_hak" value="{{ old('no_pemberian_hak', $peta->PendaftaranPertama->no_pemberian_hak ?? "") }}" class="form-control" placeholder="Nomor Keputusan" id="no_pemberian_hak">
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
                         <label for="">Permohonan Pemecahan / Pemisahan / Penggabungan Bidang</label>
-                        <input type="date" name="tgl_pemecahan" value="{{ old('tgl_pemecahan', $peta->PendaftaranPertama->tgl_pemecahan) }}" class="form-control" placeholder="Tanggal Permohonan Pemecahan / Pemisahan / Penggabungan Bidang" id="tgl_pemecahan">
-                        <input type="text" name="no_pemecahan" value="{{ old('no_pemecahan', $peta->PendaftaranPertama->no_pemecahan) }}" class="form-control" placeholder="Nomor Permohonan Pemecahan / Pemisahan / Penggabungan Bidang" id="no_pemecahan">
+                        <input type="date" name="tgl_pemecahan" value="{{ old('tgl_pemecahan', $peta->PendaftaranPertama->tgl_pemecahan ?? "") }}" class="form-control" placeholder="Tanggal Permohonan Pemecahan / Pemisahan / Penggabungan Bidang" id="tgl_pemecahan">
+                        <input type="text" name="no_pemecahan" value="{{ old('no_pemecahan', $peta->PendaftaranPertama->no_pemecahan ?? "") }}" class="form-control" placeholder="Nomor Permohonan Pemecahan / Pemisahan / Penggabungan Bidang" id="no_pemecahan">
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                         <hr>
                         <center><h3>SURAT UKUR</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
-                        <input type="date" name="tgl_surat_ukur" value="{{ old('tgl_surat_ukur', $peta->PendaftaranPertama->tgl_surat_ukur) }}" class="form-control" placeholder="Tanggal" id="tgl_surat_ukur">
+                        <input type="date" name="tgl_surat_ukur" value="{{ old('tgl_surat_ukur', $peta->PendaftaranPertama->tgl_surat_ukur ?? "") }}" class="form-control" placeholder="Tanggal" id="tgl_surat_ukur">
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
-                        <input type="text" name="no_surat_ukur" value="{{ old('no_surat_ukur', $peta->PendaftaranPertama->no_surat_ukur) }}" class="form-control" placeholder="No." id="no_surat_ukur">
+                        <input type="text" name="no_surat_ukur" value="{{ old('no_surat_ukur', $peta->PendaftaranPertama->no_surat_ukur ?? "") }}" class="form-control" placeholder="No." id="no_surat_ukur">
                     </div>
                     <div class="form-group col-sm-12 col-md-4">
-                        <input type="text" name="luas_surat_ukur" value="{{ old('luas_surat_ukur', $peta->PendaftaranPertama->luas_surat_ukur) }}" class="form-control" placeholder="Luas" id="luas_surat_ukur">
+                        <input type="text" name="luas_surat_ukur" value="{{ old('luas_surat_ukur', $peta->PendaftaranPertama->luas_surat_ukur ?? "") }}" class="form-control" placeholder="Luas" id="luas_surat_ukur">
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                         <hr>
                         <center><h3>NAMA PEMEGANG HAK</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
-                        <input type="text" name="nama_pemegang_hak" value="{{ old('nama_pemegang_hak', $peta->PendaftaranPertama->nama_pemegang_hak) }}" class="form-control" placeholder="Nama Pemegang Hak" id="nama_pemegang_hak">
+                        <input type="text" name="nama_pemegang_hak" value="{{ old('nama_pemegang_hak', $peta->PendaftaranPertama->nama_pemegang_hak ?? "") }}" class="form-control" placeholder="Nama Pemegang Hak" id="nama_pemegang_hak">
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
-                        <input type="date" name="tanggal_lahir_akta_pendirian" value="{{ old('tanggal_lahir_akta_pendirian', $peta->PendaftaranPertama->tanggal_lahir_akta_pendirian) }}" class="form-control" placeholder="Tanggal lahir / akta pendirian" id="tanggal_lahir_akta_pendirian">
+                        <input type="date" name="tanggal_lahir_akta_pendirian" value="{{ old('tanggal_lahir_akta_pendirian', $peta->PendaftaranPertama->tanggal_lahir_akta_pendirian ?? "") }}" class="form-control" placeholder="Tanggal lahir / akta pendirian" id="tanggal_lahir_akta_pendirian">
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                         <hr>
                         <center><h3>PENUNJUK</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
-                        <textarea name="petunjuk" id="petunjuk" class="form-control" cols="30" rows="2">{{ old('petunjuk', $peta->PendaftaranPertama->petunjuk) }}</textarea>
+                        <textarea name="petunjuk" id="petunjuk" class="form-control" cols="30" rows="2">{{ old('petunjuk', $peta->PendaftaranPertama->petunjuk ?? "") }}</textarea>
                     </div>
                 </div>
                 <br>
