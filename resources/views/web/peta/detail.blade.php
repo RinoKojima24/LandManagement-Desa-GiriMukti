@@ -70,7 +70,7 @@
                         </div> --}}
                 </div>
                 <div class="col-md-6 col-sm-12">
-                    <h1 style="font-size: 30px;"><b>{{ $peta->SuratUkur->kecamatan }}, {{ $peta->SuratUkur->provinsi }}, Indonesia</b></h1>
+                    <h1 style="font-size: 30px;"><b>{{ $peta->SuratUkur->kecamatan ?? "" }}, {{ $peta->SuratUkur->provinsi ?? "" }}, Indonesia</b></h1>
                     <p>{{ $peta->alamat }} <br> Lat {{ $kordinat[0] }} Long {{ $kordinat[1] }} <br> {{ date('d/m/Y, H:i:s', strtotime($peta->tanggal_pengukuran)) }}</p>
 
                 </div>
