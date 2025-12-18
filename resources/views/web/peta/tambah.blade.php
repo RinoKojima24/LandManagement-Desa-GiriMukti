@@ -775,6 +775,7 @@ input[type="file"] {
                     .then(geojson => {
 
                         const rtLayer = L.geoJSON(geojson, {
+                            interactive: false,
                             style: {
                                 color: '#e6194b',
                                 weight: 2,
