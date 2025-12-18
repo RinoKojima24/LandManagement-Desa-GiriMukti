@@ -394,23 +394,23 @@ input[type="file"] {
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                         <label for="">Nomor</label>
-                        <input type="text" name="nomor_surat" value="{{ $peta->SuratUkur->nomor }}" placeholder="Nomor" id="nomor_surat" class="form-control">
+                        <input type="text" name="nomor_surat" value="{{ $peta->SuratUkur->nomor ?? ""}}" placeholder="Nomor" id="nomor_surat" class="form-control">
                     </div>
                     <div class="form-group col-sm-12 col-md-12">
                         <hr>
                     </div>
                     <div class="row container">
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="provinsi" id="provinsi" value="{{ $peta->SuratUkur->provinsi }}" placeholder="Provinsi" class="form-control">
+                            <input type="text" name="provinsi" id="provinsi" value="{{ $peta->SuratUkur->provinsi ?? ""}}" placeholder="Provinsi" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kabupaten" id="kabupaten" value="{{ $peta->SuratUkur->kabupaten }}" placeholder="Kabupaten / Kota" class="form-control">
+                            <input type="text" name="kabupaten" id="kabupaten" value="{{ $peta->SuratUkur->kabupaten ?? "" }}" placeholder="Kabupaten / Kota" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kecamatan" id="kecamatan" value="{{ $peta->SuratUkur->kecamatan }}" placeholder="Kecamatan" class="form-control">
+                            <input type="text" name="kecamatan" id="kecamatan" value="{{ $peta->SuratUkur->kecamatan ?? "" }}" placeholder="Kecamatan" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="desa" id="desa" value="{{ $peta->SuratUkur->desa }}" placeholder="Desa / Kelurahan" class="form-control">
+                            <input type="text" name="desa" id="desa" value="{{ $peta->SuratUkur->desa ?? "" }}" placeholder="Desa / Kelurahan" class="form-control">
                         </div>
                     </div>
 
@@ -419,16 +419,16 @@ input[type="file"] {
                             <hr>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="peta" id="peta" value="{{ old('peta', $peta->SuratUkur->desa) }}" placeholder="Peta" class="form-control">
+                            <input type="text" name="peta" id="peta" value="{{ old('peta', $peta->SuratUkur->desa ?? "") }}" placeholder="Peta" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="nomor_peta" id="nomor_peta" value="{{ old('nomor_peta', $peta->SuratUkur->nomor_peta) }}" placeholder="Nomor Peta" class="form-control">
+                            <input type="text" name="nomor_peta" id="nomor_peta" value="{{ old('nomor_peta', $peta->SuratUkur->nomor_peta ?? "") }}" placeholder="Nomor Peta" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="lembar" id="lembar" value="{{ old('lembar', $peta->SuratUkur->lembar) }}" placeholder="Lembar" class="form-control">
+                            <input type="text" name="lembar" id="lembar" value="{{ old('lembar', $peta->SuratUkur->lembar ?? "") }}" placeholder="Lembar" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kotak" id="kotak" value="{{ old('kotak', $peta->SuratUkur->kotak) }}" placeholder="Kotak" class="form-control">
+                            <input type="text" name="kotak" id="kotak" value="{{ old('kotak', $peta->SuratUkur->kotak ?? "") }}" placeholder="Kotak" class="form-control">
                         </div>
                     </div>
                     <div class="row container">
@@ -437,19 +437,19 @@ input[type="file"] {
                         </div>
                         <div class="form-group col-sm-12 col-md-12">
                             <label for="">Keadaan Tanah</label>
-                            <textarea name="keadaan_tanah" id="keadaan_tanah" class="form-control" cols="30" rows="2" >{{ old('keadaan_tanah', $peta->SuratUkur->keadaan_tanah) }}</textarea>
+                            <textarea name="keadaan_tanah" id="keadaan_tanah" class="form-control" cols="30" rows="2" >{{ old('keadaan_tanah', $peta->SuratUkur->keadaan_tanah ?? "") }}</textarea>
                         </div>
                         <div class="form-group col-sm-12 col-md-12">
                             <label for="">Tanda Tanda Batas</label>
-                            <textarea name="tanda_tanda_batas" id="tanda_tanda_batas" class="form-control" cols="30" rows="2" >{{ old('tanda_tanda_batas', $peta->SuratUkur->tanda_tanda_batas) }}</textarea>
+                            <textarea name="tanda_tanda_batas" id="tanda_tanda_batas" class="form-control" cols="30" rows="2" >{{ old('tanda_tanda_batas', $peta->SuratUkur->tanda_tanda_batas ?? "") }}</textarea>
                         </div>
                         <div class="form-group col-sm-12 col-md-12">
                             <label for="">Penunjukan dan penetapan batas</label>
-                            <textarea name="penunjukan_dan_penetapan_batas" id="penunjukan_dan_penetapan_batas" class="form-control" cols="30" rows="2" >{{ old('penunjukan_dan_penetapan_batas', $peta->SuratUkur->penunjukan_dan_penetapan_batas) }}</textarea>
+                            <textarea name="penunjukan_dan_penetapan_batas" id="penunjukan_dan_penetapan_batas" class="form-control" cols="30" rows="2" >{{ old('penunjukan_dan_penetapan_batas', $peta->SuratUkur->penunjukan_dan_penetapan_batas ?? "") }}</textarea>
                         </div>
                         <div class="form-group col-sm-12 col-md-12">
                             <label for="">Hal lain-lain</label>
-                            <textarea name="hal_lain_lain" id="hal_lain_lain" class="form-control" cols="30" rows="2" >{{ old('hal_lain_lain', $peta->SuratUkur->hal_lain_lain) }}</textarea>
+                            <textarea name="hal_lain_lain" id="hal_lain_lain" class="form-control" cols="30" rows="2" >{{ old('hal_lain_lain', $peta->SuratUkur->hal_lain_lain ?? "") }}</textarea>
                         </div>
                     </div>
                     <div class="row container">
@@ -457,26 +457,26 @@ input[type="file"] {
                             <hr>
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="date" name="tgl_daftar_isian_208" value="{{ old('tgl_daftar_isian_208', $peta->SuratUkur->tgl_daftar_isian_208) }}" id="tgl_daftar_isian_208" placeholder="Tanggal Daftar Isian 208" class="form-control">
+                            <input type="date" name="tgl_daftar_isian_208" value="{{ old('tgl_daftar_isian_208', $peta->SuratUkur->tgl_daftar_isian_208 ?? "") }}" id="tgl_daftar_isian_208" placeholder="Tanggal Daftar Isian 208" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="text" name="no_daftar_isian_208" value="{{ old('no_daftar_isian_208', $peta->SuratUkur->no_daftar_isian_208) }}" id="no_daftar_isian_208" placeholder="Nomor Daftar Isian 208" class="form-control">
+                            <input type="text" name="no_daftar_isian_208" value="{{ old('no_daftar_isian_208', $peta->SuratUkur->no_daftar_isian_208 ?? "") }}" id="no_daftar_isian_208" placeholder="Nomor Daftar Isian 208" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="date" name="tgl_daftar_isian_302" value="{{ old('tgl_daftar_isian_302', $peta->SuratUkur->tgl_daftar_isian_302) }}" id="tgl_daftar_isian_302" placeholder="Tanggal Daftar Isian 302" class="form-control">
+                            <input type="date" name="tgl_daftar_isian_302" value="{{ old('tgl_daftar_isian_302', $peta->SuratUkur->tgl_daftar_isian_302 ?? "") }}" id="tgl_daftar_isian_302" placeholder="Tanggal Daftar Isian 302" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="text" name="no_daftar_isian_302" value="{{ old('no_daftar_isian_302', $peta->SuratUkur->no_daftar_isian_302) }}" id="no_daftar_isian_302" placeholder="Nomor Daftar Isian 302" class="form-control">
+                            <input type="text" name="no_daftar_isian_302" value="{{ old('no_daftar_isian_302', $peta->SuratUkur->no_daftar_isian_302 ?? "") }}" id="no_daftar_isian_302" placeholder="Nomor Daftar Isian 302" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="date" name="tgl_daftar_isian_307" value="{{ old('tgl_daftar_isian_307', $peta->SuratUkur->tgl_daftar_isian_307) }}" id="tgl_daftar_isian_307" placeholder="Tanggal Daftar Isian 307" class="form-control">
+                            <input type="date" name="tgl_daftar_isian_307" value="{{ old('tgl_daftar_isian_307', $peta->SuratUkur->tgl_daftar_isian_307 ?? "") }}" id="tgl_daftar_isian_307" placeholder="Tanggal Daftar Isian 307" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="text" name="no_daftar_isian_307" value="{{ old('no_daftar_isian_307', $peta->SuratUkur->no_daftar_isian_307) }}" id="no_daftar_isian_307" placeholder="Nomor Daftar Isian 307" class="form-control">
+                            <input type="text" name="no_daftar_isian_307" value="{{ old('no_daftar_isian_307', $peta->SuratUkur->no_daftar_isian_307 ?? "") }}" id="no_daftar_isian_307" placeholder="Nomor Daftar Isian 307" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-12">
                             <label for="">Tanggal Penomoran Surat Ukur</label>
-                            <input type="date" name="tanggal_penomoran_surat_ukur" value="{{ old('tanggal_penomoran_surat_ukur', $peta->SuratUkur->tanggal_penomoran_surat_ukur) }}" id="tanggal_penomoran_surat_ukur" placeholder="Tanggal Penomoran Surat Ukur" class="form-control">
+                            <input type="date" name="tanggal_penomoran_surat_ukur" value="{{ old('tanggal_penomoran_surat_ukur', $peta->SuratUkur->tanggal_penomoran_surat_ukur ?? "") }}" id="tanggal_penomoran_surat_ukur" placeholder="Tanggal Penomoran Surat Ukur" class="form-control">
                         </div>
                     </div>
                     <div class="row container">
@@ -484,10 +484,10 @@ input[type="file"] {
                             <hr>
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="text" name="nomor_surat_ukur" value="{{ old('nomor_surat_ukur', $peta->SuratUkur->nomor_surat_ukur) }}" id="nomor_surat_ukur" placeholder="Nomor Surat Ukur" class="form-control">
+                            <input type="text" name="nomor_surat_ukur" value="{{ old('nomor_surat_ukur', $peta->SuratUkur->nomor_surat_ukur ?? "") }}" id="nomor_surat_ukur" placeholder="Nomor Surat Ukur" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-6">
-                            <input type="text" name="nomor_hak" value="{{ old('nomor_hak', $peta->SuratUkur->nomor_hak) }}" id="nomor_hak" placeholder="Nomor Hak" class="form-control">
+                            <input type="text" name="nomor_hak" value="{{ old('nomor_hak', $peta->SuratUkur->nomor_hak ?? "") }}" id="nomor_hak" placeholder="Nomor Hak" class="form-control">
                         </div>
                     </div>
                     <div class="row container">
@@ -499,41 +499,43 @@ input[type="file"] {
                             + Tambah Surat Ukur
                         </button>
                         <div id="suratUkurContainer">
-                            @foreach ($peta->SuratUkur->DikeluarkanSuratUkur as $index => $b)
-                                <div class="row mt-3 singleRow" id="surat_row_{{ $index + 1 }}">
+                            @if($peta->SuratUkur->DikeluarkanSuratUkur)
+                                @foreach ($peta->SuratUkur->DikeluarkanSuratUkur as $index => $b)
+                                    <div class="row mt-3 singleRow" id="surat_row_{{ $index + 1 }}">
 
-                                    <div class="form-group col-sm-12 col-md-2">
-                                        <label>Tanggal</label>
-                                        <input type="date" value="{{ $b->tanggal }}" name="tanggal_surat_ukur[]" class="form-control">
+                                        <div class="form-group col-sm-12 col-md-2">
+                                            <label>Tanggal</label>
+                                            <input type="date" value="{{ $b->tanggal }}" name="tanggal_surat_ukur[]" class="form-control">
+                                        </div>
+
+                                        <div class="form-group col-sm-12 col-md-2">
+                                            <label>Nomor</label>
+                                            <input type="text" value="{{ $b->nomor }}" name="nomor_surat_ukur_all[]" class="form-control">
+                                        </div>
+
+                                        <div class="form-group col-sm-12 col-md-2">
+                                            <label>Luas</label>
+                                            <input type="text" value="{{ $b->luas }}" name="luas_surat_ukur_all[]" class="form-control">
+                                        </div>
+
+                                        <div class="form-group col-sm-12 col-md-2">
+                                            <label>Nomor Hak</label>
+                                            <input type="text" value="{{ $b->nomor_hak }}" name="nomor_hak_all[]" class="form-control">
+                                        </div>
+
+                                        <div class="form-group col-sm-12 col-md-2">
+                                            <label>Sisa Luas</label>
+                                            <input type="text" value="{{ $b->sisa_luas }}" name="sisa_luas[]" class="form-control">
+                                        </div>
+
+                                        <div class="form-group col-sm-12 col-md-1">
+                                            <label>&nbsp;</label>
+                                            <button type="button" class="btn btn-danger form-control" onclick="removeSuratRow('{{ $index + 1 }}')">X</button>
+                                        </div>
+
                                     </div>
-
-                                    <div class="form-group col-sm-12 col-md-2">
-                                        <label>Nomor</label>
-                                        <input type="text" value="{{ $b->nomor }}" name="nomor_surat_ukur_all[]" class="form-control">
-                                    </div>
-
-                                    <div class="form-group col-sm-12 col-md-2">
-                                        <label>Luas</label>
-                                        <input type="text" value="{{ $b->luas }}" name="luas_surat_ukur_all[]" class="form-control">
-                                    </div>
-
-                                    <div class="form-group col-sm-12 col-md-2">
-                                        <label>Nomor Hak</label>
-                                        <input type="text" value="{{ $b->nomor_hak }}" name="nomor_hak_all[]" class="form-control">
-                                    </div>
-
-                                    <div class="form-group col-sm-12 col-md-2">
-                                        <label>Sisa Luas</label>
-                                        <input type="text" value="{{ $b->sisa_luas }}" name="sisa_luas[]" class="form-control">
-                                    </div>
-
-                                    <div class="form-group col-sm-12 col-md-1">
-                                        <label>&nbsp;</label>
-                                        <button type="button" class="btn btn-danger form-control" onclick="removeSuratRow('{{ $index + 1 }}')">X</button>
-                                    </div>
-
-                                </div>
-                            @endforeach
+                                @endforeach
+                            @endif
                         </div>
                     </div>
 
