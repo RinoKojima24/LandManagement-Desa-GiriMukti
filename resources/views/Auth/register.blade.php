@@ -289,11 +289,11 @@
                     if (res.status === "ok") {
                         console.log(res);
                         // alert("Registrasi berhasil!");
-                        showNotif("Register berhasil!");
+                        showNotif("Register berhasil (Mohon ditunggu konfirmasi admin)!");
 
                         setTimeout(() => {
                             window.location.href = "{{ url('login') }}";
-                        }, 2000);
+                        }, 5000);
                     } else {
                         // alert("OTP salah!");
                         showNotif(res.message);

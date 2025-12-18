@@ -111,14 +111,14 @@
                         <label class="block text-xs text-gray-600 mb-1">Dari Tanggal</label>
                         <input type="date"
                                name="tanggal_dari"
-                               value="{{ request('tanggal_dari') }}"
+                               value="{{ request('tanggal_dari', $tanggal_dari) }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-600 mb-1">Sampai Tanggal</label>
                         <input type="date"
                                name="tanggal_sampai"
-                               value="{{ request('tanggal_sampai') }}"
+                               value="{{ request('tanggal_sampai', $tanggal_sampai) }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent">
                     </div>
                 </div>

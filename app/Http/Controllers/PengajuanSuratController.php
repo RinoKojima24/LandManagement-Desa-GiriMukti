@@ -28,8 +28,8 @@ class PengajuanSuratController extends Controller {
             $status = $request->input('status');
             $jenis_surat_id = $request->input('jenis_surat');
             $search = $request->input('search');
-            $tanggal_dari = $request->input('tanggal_dari');
-            $tanggal_sampai = $request->input('tanggal_sampai');
+            $tanggal_dari = $request->input('tanggal_dari') ?? date('Y-m-d');
+            $tanggal_sampai = $request->input('tanggal_sampai') ?? date('Y-m-d');
             $jenis_kelamin = $request->input('jenis_kelamin');
             $surat_keterangan = [];
             $surat_permohonan = [];
@@ -75,7 +75,7 @@ class PengajuanSuratController extends Controller {
                     $query_keterangan->where('sk.jenis_kelamin', $jenis_kelamin);
                 }
 
-                $surat_keterangan = $query_keterangan->orderBy('sk.created_at', 'desc')->get();
+                $surat_keterangan = $query_keterangan->orderBy('sk.created_at', 'asc')->get();
             }
 
             if($_GET['tipe_surat'] == "0") {
@@ -117,7 +117,7 @@ class PengajuanSuratController extends Controller {
                 //     $query_permohonan->where('sp.jenis_kelamin', $jenis_kelamin);
                 // }
 
-                $query_permohonan = SuratPermohonan::orderBy('created_at', 'desc');
+                $query_permohonan = SuratPermohonan::orderBy('created_at', 'asc');
                 if ($tanggal_dari) {
                     $query_permohonan->whereDate('created_at', '>=', $tanggal_dari);
                 }
@@ -143,7 +143,9 @@ class PengajuanSuratController extends Controller {
             return view('web.berkas', compact(
                 'surat_keterangan',
                 'surat_permohonan',
-                'jenis_surat_list'
+                'jenis_surat_list',
+                'tanggal_dari',
+                'tanggal_sampai',
             ));
 
         } catch(\Exception $e) {
