@@ -143,6 +143,8 @@
         color: #444;
     }
 
+
+
 input[type="file"] {
     position: absolute;
     width: 100%;
@@ -151,6 +153,17 @@ input[type="file"] {
     cursor: pointer;
     top: 0;
     left: 0;
+}
+
+.rt-label span {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    /* background: rgba(255,255,255,0.8); */
+    padding: 2px 6px;
+    border-radius: 4px;
+    /* border: 1px solid #555; */
+    white-space: nowrap;
 }
 
 </style>
@@ -734,6 +747,19 @@ input[type="file"] {
                         }
                     }).addTo(map);
 
+                                        // 🔹 hitung titik tengah polygon
+                    const center = layer.getBounds().getCenter();
+
+                    // 🔹 text label
+                    const label = L.marker(center, {
+                        interactive: false,
+                        icon: L.divIcon({
+                            className: 'rt-label',
+                            html: `<span>${rt.nama}</span>`,
+                            iconSize: [100, 20],
+                            iconAnchor: [50, 10]
+                        })
+                    }).addTo(map);
 
 
                 });
