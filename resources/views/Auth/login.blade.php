@@ -381,7 +381,7 @@
 
                                     <div class="form-group">
                                         <span class="icon">👤</span>
-                                        <input type="text" name="email" id="email" placeholder="Email / No. HP" required>
+                                        <input type="text" name="email" id="email" placeholder="NIK/ Email / No. HP" required>
                                     </div>
 
                                     {{-- <div class="form-group password-group">
