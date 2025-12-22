@@ -15,8 +15,13 @@ use App\Http\Controllers\TanahController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PermohonanSuratController;
+use App\Http\Controllers\RtController;
 use App\Http\Controllers\WargaController;
+use App\Models\BeritaAcara;
+use App\Models\PernyataanPemasanganTenda;
+use App\Models\PernyataanPenguasaan;
 use App\Models\PetaTanah;
+use App\Models\Rt;
 use App\Models\SuratPermohonan;
 use App\Models\User;
 use Database\Seeders\NontificationFactory;
@@ -104,20 +109,20 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/', fn() => view('Auth.login'))->name('guest.home');
     Route::get('/test', function() {
-        $user = User::create([
-            'email' => "Nom@email.com",
-            'nama_petugas' => "ASD",
-            'no_telepon' => "12312",
-            'nik' => "11111",
-            'foto_ktp' => "ASd",
+        // $user = User::create([
+        //     'email' => "Nom@email.com",
+        //     'nama_petugas' => "ASD",
+        //     'no_telepon' => "12312",
+        //     'nik' => "11111",
+        //     'foto_ktp' => "ASd",
 
-            'role' => 'warga',
-            'is_active' => false,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        //     'role' => 'warga',
+        //     'is_active' => false,
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
 
-        dd($user);
+        // dd($user);
         // $pesan = "Ayam\nsapi\nkambing";
         // WaHelpers::sendWa('081212379429', $pesan);
     });
@@ -136,7 +141,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/pengajuan_surat', function() {
         // Kirim variabel ke view
-        return view('guest.pengajuan_surat');
+        $data['operator'] = User::where('role', 'operator')->get();
+        $data['warga'] = User::where('role', 'warga')->get();
+        $data['rt'] = Rt::orderBy('nama', 'ASC')->get();
+        return view('guest.pengajuan_surat', $data);
     });
 
     Route::get('/pengajuan_keterangan', function() {
@@ -271,16 +279,23 @@ Route::middleware(['auth'])->group(function () {
                 // Simpan ke tabel surat_permohonan
                 // $idPermohonan = DB::table('surat_permohonan')->insertGetId($commonData);
 
+                $warga = User::find($request->user_id);
+                $rt = Rt::find($request->rt_id);
+
+
                 $idPermohonan = SuratPermohonan::create([
-                    'user_id' => Auth::user()->id,
-                    'nama' => $request->nama,
+                    'user_id' => $warga->id,
+                    'nama' => $warga->nama_petugas,
                     'nik' => $request->nik,
                     'tempat' => $request->tempat,
                     'tanggal_lahir' => $request->tanggal_lahir,
                     'pekerjaan' => $request->pekerjaan,
                     'agama' => $request->agama,
                     'alamat' => $request->alamat,
-                    'rt_rw' => $request->rt_rw,
+
+                    'rt_id' => $rt->id,
+                    'rt_rw' => $rt->nama,
+
                     'jalan' => $request->jalan,
 
 
@@ -288,14 +303,20 @@ Route::middleware(['auth'])->group(function () {
                     'lebar' => $request->lebar,
                     'luas' => $request->luas,
 
-                    'kondisi_fisik' => $request->panjang,
-                    'dasar_perolehan' => $request->lebar,
+                    'kondisi_fisik' => $request->kondisi_fisik,
+                    'dasar_perolehan' => $request->dasar_perolehan,
 
-                    'sebelah_utara' => $request->sebelah_utara,
-                    'sebelah_timur' => $request->sebelah_timur,
+                    // 'sebelah_utara' => $request->sebelah_utara,
+                    // 'sebelah_timur' => $request->sebelah_timur,
 
-                    'sebelah_selatan' => $request->sebelah_selatan,
-                    'sebelah_barat' => $request->sebelah_barat,
+                    // 'sebelah_selatan' => $request->sebelah_selatan,
+                    // 'sebelah_barat' => $request->sebelah_barat,
+
+                    'sebelah_utara' => $request->sebelah_utara_nama,
+                    'sebelah_timur' => $request->sebelah_timur_nama,
+
+                    'sebelah_selatan' => $request->sebelah_selatan_nama,
+                    'sebelah_barat' => $request->sebelah_barat_nama,
 
                     'tahun_dikuasai' => $request->tahun_dikuasai,
 
@@ -303,6 +324,96 @@ Route::middleware(['auth'])->group(function () {
                     'dokumen_pendukung' => $commonData['dokumen_pendukung'],
 
                 ]);
+
+                $tenda = new PernyataanPemasanganTenda();
+                $tenda->surat_permohonan_id = $idPermohonan->id;
+                $tenda->sebelah_utara_nama = $request->sebelah_utara_nama;
+                $tenda->sebelah_utara_nik = $request->sebelah_utara_nik;
+
+                $tenda->sebelah_timur_nama = $request->sebelah_timur_nama;
+                $tenda->sebelah_timur_nik = $request->sebelah_timur_nik;
+
+                $tenda->sebelah_selatan_nama = $request->sebelah_selatan_nama;
+                $tenda->sebelah_selatan_nik = $request->sebelah_selatan_nik;
+
+                $tenda->sebelah_barat_nama = $request->sebelah_barat_nama;
+                $tenda->sebelah_barat_nik = $request->sebelah_barat_nik;
+
+                $tenda->pembuat_pernyataan = $request->pembuat_pernyataan_1;
+
+                // $tenda->rt = $request->rt_1;
+                // $tenda->nama_ketua_rt = $request->nama_ketua_rt;
+
+                $tenda->rt =  $rt->nama;
+                $tenda->nama_ketua_rt = $rt->nama_rt;
+                $tenda->save();
+
+                $operator1 = User::find($request->operator_1_id);
+                $operator2 = User::find($request->operator_2_id);
+
+                $berita = new BeritaAcara;
+                $berita->surat_permohonan_id = $idPermohonan->id;
+                $berita->tanggal_dilaksanakan = $request->tanggal_dilaksanakan;
+
+                // $berita->nama_1 = $request->nama_1;
+                // $berita->nip_1 = $request->nip_1;
+                // $berita->jabatan_1 = $request->jabatan_1;
+                // $berita->tugas_1 = $request->tugas_1;
+
+
+
+                // $berita->nama_2 = $request->nama_2;
+                // $berita->nip_2 = $request->nip_2;
+                // $berita->jabatan_2 = $request->jabatan_2;
+                // $berita->tugas_2 = $request->tugas_2;
+
+                $berita->operator_1_id = $operator1->id;
+                $berita->nama_1 = $operator1->nama_petugas;
+                $berita->nip_1 = $operator1->nip;
+                $berita->jabatan_1 = $operator1->jabatan;
+                $berita->tugas_1 = '-';
+
+                $berita->operator_2_id = $operator2->id;
+                $berita->nama_2 = $operator2->nama_petugas;
+                $berita->nip_2 = $operator2->nip;
+                $berita->jabatan_2 = $operator2->jabatan;
+                $berita->tugas_2 = '-';
+
+                $berita->save();
+
+                $pp = new PernyataanPenguasaan;
+                $pp->surat_permohonan_id = $idPermohonan->id;
+                $pp->tahun_kuasa = $request->tahun_kuasa;
+                $pp->nama_peroleh = $request->nama_peroleh;
+                $pp->pembuat_pernyataan = $request->pembuat_pernyataan_2;
+
+                $pp->nama_saksi_1 = $request->nama_saksi_1;
+                $pp->nik_saksi_1 = $request->nik_saksi_1;
+
+                $pp->nama_saksi_2 = $request->nama_saksi_2;
+                $pp->nik_saksi_2 = $request->nik_saksi_2;
+
+                // $pp->nomor_rt = $request->nomor_rt;
+                // $pp->rt = $request->rt;
+                // $pp->nama_rt = $request->nama_rt;
+
+                // 'nomor_rt' => $rt->nomor_rt,
+                // 'rt' => $rt->nama,
+                // 'nama_rt' => $rt->nama_rt,
+
+                $pp->nomor_rt =  $rt->nomor_rt;
+                $pp->rt = $rt->nama;
+                $pp->nama_rt = $rt->nama_rt;
+                $pp->tanggal_rt = $request->tanggal_rt;
+
+                $pp->nomor_kades = $request->nomor_kades;
+                $pp->tanggal_kades = $request->tanggal_kades;
+
+                $pp->nomor_camat = $request->nomor_camat;
+                $pp->tanggal_penajam = $request->tanggal_penajam;
+
+                $pp->save();
+
 
 
 
@@ -325,7 +436,7 @@ Route::middleware(['auth'])->group(function () {
         }
     });
     // ---------- HOME ----------
-        Route::get('/home', function () {
+    Route::get('/home', function () {
             $posts = DB::table('posts')
                 ->where('status', 'published')
                 ->orderBy('created_at', 'desc')
@@ -379,6 +490,8 @@ Route::middleware(['auth'])->group(function () {
     // ----------- WARGA -----------
     Route::resource('warga',WargaController::class);
     Route::resource('operator',OperatorController::class);
+    Route::resource('rt',RtController::class);
+
 
     Route::get('/lihat-ktp/{filename}', [WargaController::class, 'lihatKtp']);
 
@@ -408,6 +521,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/verified/{id}', 'verified')->name('surat.verified');
         Route::post('/reject/{id}', 'reject')->name('surat.reject');
     });
+
+
 
 
         Route::post('/simpan-gambar', function (Request $request) {

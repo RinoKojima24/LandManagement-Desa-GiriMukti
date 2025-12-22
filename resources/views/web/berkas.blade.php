@@ -148,6 +148,9 @@
                 </div>
                 <div>
                     <form action="" method="get" id="ganti_tipe_surat">
+                        @if(Auth::user()->role != "warga")
+                            <a href="{{ url('pengajuan_surat') }}" class="btn btn-success">Tambah Data</a>
+                        @endif
                         <select name="tipe_surat" id="tipe_surat" class="form-control">
                             <option value="0" {{ @$_GET['tipe_surat'] == "0" ? 'selected' : '' }}>Pengajuan Surat Tanah</option>
                             <option value="1" {{ @$_GET['tipe_surat'] == "1" ? 'selected' : '' }}>Pengajuan Surat Keterangan</option>
@@ -316,6 +319,12 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            @if (Auth::user()->role != "warga")
+                                <a href="{{ url('berkas/'.($surat->id_permohonan ?? $surat->id).'?tipe_surat='.$_GET['tipe_surat'].'&apalah='.$_GET['tipe_surat'] ) }}"
+                                class="hover:text-teal-900 font-medium" style="color: blue;">
+                                    Edit
+                                </a>
+                            @endif
                             <a href="{{ url('berkas/'.($surat->id_permohonan ?? $surat->id).'?tipe_surat='.$_GET['tipe_surat']) }}"
                                class="text-teal-600 hover:text-teal-900 font-medium">
                                 Lihat Detail

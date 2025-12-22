@@ -382,10 +382,10 @@
 <div class="container">
     <div class="card">
         <div class="header">
-            <a href="{{ route('home') }}">
+            <a href="{{ url('berkas?tipe_surat=0') }}">
                 <button class="back-btn" type="button">←</button>
             </a>
-            <h1>Pengajuan Surat Tanah</h1>
+            <h1>Edit Pengajuan Surat Tanah</h1>
         </div>
 
         @if ($errors->any())
@@ -405,10 +405,12 @@
         @endif
 
       <form id="suratForm"
-      action="{{ url('pengajuan') }}"
+      action="{{ url('berkas/'.$surat->id) }}"
       method="POST"
       enctype="multipart/form-data">
     @csrf
+    @method('PUT')
+            <input type="hidden" name="apalah" value="0">
             <input type="hidden" name="type" value="surat">
             {{-- Surat Pengajuan Tanah --}}
             <div id="list_surat_0">
@@ -429,7 +431,7 @@
                             > --}}
                             <select name="user_id" class="form-control" id="">
                                 @foreach ($warga as $a)
-                                    <option value="{{ $a->id }}">{{ $a->nama_petugas }}</option>
+                                    <option value="{{ $a->id }}" {{ old('user_id', @$surat->user_id) == $a->id ? 'selected' : '' }}>{{ $a->nama_petugas }}</option>
                                 @endforeach
                             </select>
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -447,7 +449,7 @@
                                 placeholder="Masukkan 16 digit NIK"
                                 maxlength="16"
                                 pattern="[0-9]{16}"
-                                value="{{ old('nik') }}"
+                                value="{{ old('nik', @$surat->nik) }}"
                                 required
                             >
                             <div class="error-message">NIK harus 16 digit angka</div>
@@ -462,7 +464,7 @@
                                 id="agama"
                                 name="agama"
                                 class="form-control"
-                                value="{{ old('agama') }}"
+                                value="{{ old('agama', @$surat->agama) }}"
                                 required
                             >
                             <div class="error-message">NIK harus 16 digit angka</div>
@@ -474,10 +476,10 @@
                             </label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="tempat" id="tempat" value="{{ old('tempat') }}" placeholder="Tempat lahir anda" required>
+                                    <input type="text" class="form-control" name="tempat" id="tempat" value="{{ old('tempat', @$surat->tempat) }}" placeholder="Tempat lahir anda" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <input type="date" class="form-control" name="tanggal_lahir" id="tanggal_lahir" value="{{ old('tanggal_lahir') }}" placeholder="Tanggal lahir anda" required>
+                                    <input type="date" class="form-control" name="tanggal_lahir" id="tanggal_lahir" value="{{ old('tanggal_lahir', @$surat->tanggal_lahir) }}" placeholder="Tanggal lahir anda" required>
                                 </div>
 
                             </div>
@@ -489,13 +491,13 @@
                             </label>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" name="panjang" id="panjang" value="{{ old('panjang') }}" placeholder="Panjang" required>
+                                    <input type="text" class="form-control" name="panjang" id="panjang" value="{{ old('panjang', @$surat->panjang) }}" placeholder="Panjang" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" name="lebar" id="lebar" value="{{ old('lebar') }}" placeholder="Lebar" required>
+                                    <input type="text" class="form-control" name="lebar" id="lebar" value="{{ old('lebar', @$surat->lebar) }}" placeholder="Lebar" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" name="luas" id="luas" value="{{ old('luas') }}" placeholder="Luas" required>
+                                    <input type="text" class="form-control" name="luas" id="luas" value="{{ old('luas', @$surat->luas) }}" placeholder="Luas" required>
                                 </div>
 
                             </div>
@@ -521,7 +523,7 @@
                                 class="form-control"
                                 placeholder="Masukkan Kondisi Fisik"
                                 required
-                            >{{ old('kondisi_fisik') }}</textarea> --}}
+                            >{{ old('kondisi_fisik', @$surat->kondisi_fisik) }}</textarea> --}}
                         </div>
                         <div class="form-group">
                             <label for="nik">
@@ -535,7 +537,7 @@
                                 placeholder="Masukkan Pekerjaan"
                                 {{-- maxlength="16"
                                 pattern="[0-9]{16}" --}}
-                                value="{{ old('tahun_dikuasai') }}"
+                                value="{{ old('tahun_dikuasai', @$surat->tahun_dikuasai) }}"
                                 required
                             >
                             <div class="error-message">NIK harus 16 digit angka</div>
@@ -554,7 +556,7 @@
                                 placeholder="Masukkan Pekerjaan"
                                 {{-- maxlength="16" --}}
                                 {{-- pattern="[0-9]{16}" --}}
-                                value="{{ old('pekerjaan') }}"
+                                value="{{ old('pekerjaan', @$surat->pekerjaan) }}"
                                 required
                             >
                             <div class="error-message">NIK harus 16 digit angka</div>
@@ -569,7 +571,7 @@
                                 class="form-control"
                                 placeholder="Masukkan alamat lengkap"
                                 required
-                            >{{ old('alamat') }}</textarea>
+                            >{{ old('alamat', @$surat->alamat) }}</textarea>
                             <div class="error-message">Alamat wajib diisi</div>
                         </div>
                         <div class="form-group">
@@ -584,7 +586,7 @@
                                 placeholder="Masukkan Pekerjaan"
                                 {{-- maxlength="16"
                                 pattern="[0-9]{16}" --}}
-                                value="{{ old('jalan') }}"
+                                value="{{ old('jalan', @$surat->jalan) }}"
                                 required
                             >
                             <div class="error-message">NIK harus 16 digit angka</div>
@@ -598,12 +600,13 @@
                                 id="rt_rw"
                                 name="rt_rw"
                                 class="form-control"
-                                value="{{ old('rt_rw') }}"
+                                placeholder="Masukkan Pekerjaan"
+                                value="{{ old('rt_rw', @$surat->rt_rw) }}"
                                 required
                             > --}}
                             <select name="rt_id" class="form-control" id="rt_id">
                                 @foreach ($rt as $a)
-                                    <option value="{{ $a->id }}" {{ old('rt_id') == $a->id ? 'selected' : '' }}>{{ $a->nomor_rt.' | '.$a->nama_rt.' | '.$a->nama }}</option>
+                                    <option value="{{ $a->id }}" {{ old('rt_id', @$surat->rt_id) == $a->id ? 'selected' : '' }}>{{ $a->nomor_rt.' | '.$a->nama_rt.' | '.$a->nama }}</option>
                                 @endforeach
                             </select>
                             <div class="error-message">NIK harus 16 digit angka</div>
@@ -629,7 +632,7 @@
                                 class="form-control"
                                 placeholder="Masukkan Dasar Perolehan"
                                 required
-                            >{{ old('dasar_perolehan') }}</textarea> --}}
+                            >{{ old('dasar_perolehan', @$surat->dasar_perolehan) }}</textarea> --}}
                         </div>
                         {{-- <div class="form-group">
                             <label for="alamat">
@@ -637,18 +640,18 @@
                             </label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="sebelah_utara" id="sebelah_utara" value="{{ old('sebelah_utara') }}" placeholder="Sebelah Utara" >
+                                    <input type="text" class="form-control" name="sebelah_utara" id="sebelah_utara" value="{{ old('sebelah_utara', @$surat->sebelah_utara) }}" placeholder="Sebelah Utara" >
                                 </div>
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="sebelah_timur" id="sebelah_timur" value="{{ old('sebelah_timur') }}" placeholder="Sebelah Timur">
+                                    <input type="text" class="form-control" name="sebelah_timur" id="sebelah_timur" value="{{ old('sebelah_timur', @$surat->sebelah_timur) }}" placeholder="Sebelah Timur">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="sebelah_selatan" id="sebelah_selatan" value="{{ old('sebelah_selatan') }}" placeholder="Sebelah Selatan">
+                                    <input type="text" class="form-control" name="sebelah_selatan" id="sebelah_selatan" value="{{ old('sebelah_selatan', @$surat->sebelah_selatan) }}" placeholder="Sebelah Selatan">
                                 </div>
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="sebelah_barat" id="sebelah_barat" value="{{ old('sebelah_barat') }}" placeholder="Sebelah Barat">
+                                    <input type="text" class="form-control" name="sebelah_barat" id="sebelah_barat" value="{{ old('sebelah_barat', @$surat->sebelah_barat) }}" placeholder="Sebelah Barat">
                                 </div>
                             </div>
                             <div class="error-message">Alamat wajib diisi</div>
@@ -700,7 +703,6 @@
                                         id="ktpUpload"
                                         name="ktp"
                                         accept="image/jpeg,image/jpg,image/png,.pdf"
-                                        required
                                     >
                                 </div>
                             </div>
@@ -743,7 +745,7 @@
                                 name="sebelah_utara_nama"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('sebelah_utara_nama', @$surat->sebelah_utara_nama) }}"
+                                value="{{ old('sebelah_utara_nama', @$surat->Pernyataan1->sebelah_utara_nama) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -758,7 +760,7 @@
                                 name="sebelah_utara_nik"
                                 class="form-control"
                                 placeholder="Masukkan NIK"
-                                value="{{ old('sebelah_utara_nik',  @$surat->sebelah_utara_nik) }}"
+                                value="{{ old('sebelah_utara_nik',  @$surat->Pernyataan1->sebelah_utara_nik) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -776,7 +778,7 @@
                                 name="sebelah_timur_nama"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('sebelah_timur_nama',  @$surat->sebelah_timur_nama) }}"
+                                value="{{ old('sebelah_timur_nama',  @$surat->Pernyataan1->sebelah_timur_nama) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -791,7 +793,7 @@
                                 name="sebelah_timur_nik"
                                 class="form-control"
                                 placeholder="Masukkan NIK"
-                                value="{{ old('sebelah_timur_nik',  @$surat->sebelah_timur_nik) }}"
+                                value="{{ old('sebelah_timur_nik',  @$surat->Pernyataan1->sebelah_timur_nik) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -809,7 +811,7 @@
                                 name="sebelah_selatan_nama"
                                 class="form-control"
                                 placeholder="Masukkan Nama lengkap"
-                                value="{{ old('sebelah_selatan_nama', @$surat->sebelah_selatan_nama) }}"
+                                value="{{ old('sebelah_selatan_nama', @$surat->Pernyataan1->sebelah_selatan_nama) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -824,7 +826,7 @@
                                 name="sebelah_selatan_nik"
                                 class="form-control"
                                 placeholder="Masukkan NIK"
-                                value="{{ old('sebelah_selatan_nik', @$surat->sebelah_selatan_nik) }}"
+                                value="{{ old('sebelah_selatan_nik', @$surat->Pernyataan1->sebelah_selatan_nik) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -842,7 +844,7 @@
                                 name="sebelah_barat_nama"
                                 class="form-control"
                                 placeholder="Masukkan Nama lengkap"
-                                value="{{ old('sebelah_barat_nama', @$surat->sebelah_barat_nama) }}"
+                                value="{{ old('sebelah_barat_nama', @$surat->Pernyataan1->sebelah_barat_nama) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -857,7 +859,7 @@
                                 name="sebelah_barat_nik"
                                 class="form-control"
                                 placeholder="Masukkan NIK"
-                                value="{{ old('sebelah_barat_nik', @$surat->sebelah_barat_nik) }}"
+                                value="{{ old('sebelah_barat_nik', @$surat->Pernyataan1->sebelah_barat_nik) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -874,7 +876,7 @@
                                 name="pembuat_pernyataan_1"
                                 class="form-control"
                                 placeholder="Masukkan Nama lengkap"
-                                value="{{ old('pembuat_pernyataan_1', @$surat->pembuat_pernyataan) }}"
+                                value="{{ old('pembuat_pernyataan_1', @$surat->Pernyataan1->pembuat_pernyataan) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -892,7 +894,7 @@
                                 name="nama_ketua_rt"
                                 class="form-control"
                                 placeholder="Masukkan Nama lengkap"
-                                value="{{ old('nama_ketua_rt', @$surat->nama_ketua_rt) }}"
+                                value="{{ old('nama_ketua_rt', @$surat->Pernyataan1->nama_ketua_rt) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -902,12 +904,12 @@
                                 RT Berapa<span class="required"></span>
                             </label>
                             <input
-                                type="number"
+                                type="text"
                                 id="rt_1"
                                 name="rt_1"
                                 class="form-control"
-                                placeholder="Masukkan NIK"
-                                value="{{ old('rt_1', @$surat->rt) }}"
+                                placeholder="Masukkan Nomor RT"
+                                value="{{ old('rt_1', @$surat->Pernyataan1->rt) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -930,7 +932,7 @@
                                 name="tanggal_dilaksanakan"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('tanggal_dilaksanakan', @$surat->tanggal_dilaksanakan) }}"
+                                value="{{ old('tanggal_dilaksanakan', @$surat->BeritaAcara->tanggal_dilaksanakan) }}"
 
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
@@ -956,7 +958,7 @@
                                 name="nama_1"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('nama_1', @$surat->nama_1) }}"
+                                value="{{ old('nama_1', @$surat->BeritaAcara->nama_1) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -970,7 +972,7 @@
                                 name="nip_1"
                                 class="form-control"
                                 placeholder="Masukkan NIP"
-                                value="{{ old('nip_1', @$surat->nip_1) }}"
+                                value="{{ old('nip_1', @$surat->BeritaAcara->nip_1) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -984,7 +986,7 @@
                                 name="jabatan_1"
                                 class="form-control"
                                 placeholder="Masukkan Jabatan"
-                                value="{{ old('jabatan_1', @$surat->jabatan_1) }}"
+                                value="{{ old('jabatan_1', @$surat->BeritaAcara->jabatan_1) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -998,7 +1000,7 @@
                                 name="tugas_1"
                                 class="form-control"
                                 placeholder="Masukkan Tugas"
-                                value="{{ old('tugas_1', @$surat->tugas_1) }}"
+                                value="{{ old('tugas_1', @$surat->BeritaAcara->tugas_1) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div> --}}
@@ -1024,7 +1026,7 @@
                                 name="nama_2"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('nama_2', @$surat->nama_2) }}"
+                                value="{{ old('nama_2', @$surat->BeritaAcara->nama_2) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1038,7 +1040,7 @@
                                 name="nip_2"
                                 class="form-control"
                                 placeholder="Masukkan NIP"
-                                value="{{ old('nip_2', @$surat->nip_2) }}"
+                                value="{{ old('nip_2', @$surat->BeritaAcara->nip_2) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1052,7 +1054,7 @@
                                 name="jabatan_2"
                                 class="form-control"
                                 placeholder="Masukkan Jabatan"
-                                value="{{ old('jabatan_2', @$surat->jabatan_2) }}"
+                                value="{{ old('jabatan_2', @$surat->BeritaAcara->jabatan_2) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1066,7 +1068,7 @@
                                 name="tugas_2"
                                 class="form-control"
                                 placeholder="Masukkan Tugas"
-                                value="{{ old('tugas_2', @$surat->tugas_2) }}"
+                                value="{{ old('tugas_2', @$surat->BeritaAcara->tugas_2) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div> --}}
@@ -1087,7 +1089,7 @@
                                 name="pembuat_pernyataan_2"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('pembuat_pernyataan_2', @$surat->pembuat_pernyataan) }}"
+                                value="{{ old('pembuat_pernyataan_2', @$surat->Pernyataan2->pembuat_pernyataan) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1103,7 +1105,7 @@
                                 name="tahun_kuasa"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('tahun_kuasa', @$surat->tahun_kuasa) }}"
+                                value="{{ old('tahun_kuasa', @$surat->Pernyataan2->tahun_kuasa) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1119,7 +1121,7 @@
                                 name="nama_peroleh"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('nama_peroleh', @$surat->nama_peroleh) }}"
+                                value="{{ old('nama_peroleh', @$surat->Pernyataan2->nama_peroleh) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1136,7 +1138,7 @@
                                 name="nama_saksi_1"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('nama_saksi_1', @$surat->nama_saksi_1) }}"
+                                value="{{ old('nama_saksi_1', @$surat->Pernyataan2->nama_saksi_1) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1150,7 +1152,7 @@
                                 name="nik_saksi_1"
                                 class="form-control"
                                 placeholder="Masukkan NIK"
-                                value="{{ old('nik_saksi_1', @$surat->nik_saksi_1) }}"
+                                value="{{ old('nik_saksi_1', @$surat->Pernyataan2->nik_saksi_1) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1167,7 +1169,7 @@
                                 name="nama_saksi_2"
                                 class="form-control"
                                 placeholder="Masukkan nama lengkap"
-                                value="{{ old('nama_saksi_2', @$surat->nama_saksi_2) }}"
+                                value="{{ old('nama_saksi_2', @$surat->Pernyataan2->nama_saksi_2) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1181,7 +1183,7 @@
                                 name="nik_saksi_2"
                                 class="form-control"
                                 placeholder="Masukkan NIK"
-                                value="{{ old('nik_saksi_2', @$surat->nik_saksi_2) }}"
+                                value="{{ old('nik_saksi_2', @$surat->Pernyataan2->nik_saksi_2) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1197,7 +1199,7 @@
                                 id="tanggal_rt"
                                 name="tanggal_rt"
                                 class="form-control"
-                                value="{{ old('tanggal_rt', @$surat->tanggal_rt) }}"
+                                value="{{ old('tanggal_rt', @$surat->Pernyataan2->tanggal_rt) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1213,7 +1215,21 @@
                                         name="nomor_rt"
                                         class="form-control"
                                         placeholder="592.2/0001"
-                                        value="{{ old('nomor_rt', @$surat->nomor_rt) }}"
+                                        value="{{ old('nomor_rt', @$surat->Pernyataan2->nomor_rt) }}"
+                                    >
+
+                                    <div class="error-message">Nama lengkap wajib diisi</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="namaLengkap">
+                                        Tanggal RT
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="tanggal_rt"
+                                        name="tanggal_rt"
+                                        class="form-control"
+                                        value="{{ old('tanggal_rt', @$surat->Pernyataan2->tanggal_rt) }}"
                                     >
                                     <div class="error-message">Nama lengkap wajib diisi</div>
                                 </div>
@@ -1228,7 +1244,7 @@
                                         id="rt"
                                         name="rt"
                                         class="form-control"
-                                        value="{{ old('rt', @$surat->rt) }}"
+                                        value="{{ old('rt', @$surat->Pernyataan2->rt) }}"
                                     >
                                     <div class="error-message">Nama lengkap wajib diisi</div>
                                 </div>
@@ -1242,7 +1258,7 @@
                                         name="nama_rt"
                                         class="form-control"
                                         placeholder="Nama RT"
-                                        value="{{ old('nama_rt', @$surat->nama_rt) }}"
+                                        value="{{ old('nama_rt', @$surat->Pernyataan2->nama_rt) }}"
                                     >
                                     <div class="error-message">Nama lengkap wajib diisi</div>
                                 </div>
@@ -1260,7 +1276,7 @@
                                 id="nomor_kades"
                                 name="nomor_kades"
                                 class="form-control"
-                                value="{{ old('nomor_kades', @$surat->nomor_kades) }}"
+                                value="{{ old('nomor_kades', @$surat->Pernyataan2->nomor_kades) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1273,7 +1289,7 @@
                                 id="tanggal_kades"
                                 name="tanggal_kades"
                                 class="form-control"
-                                value="{{ old('tanggal_kades', @$surat->tanggal_kades) }}"
+                                value="{{ old('tanggal_kades', @$surat->Pernyataan2->tanggal_kades) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1289,7 +1305,7 @@
                                 id="nomor_camat"
                                 name="nomor_camat"
                                 class="form-control"
-                                value="{{ old('nomor_camat', @$surat->nomor_camat) }}"
+                                value="{{ old('nomor_camat', @$surat->Pernyataan2->nomor_camat) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1302,7 +1318,7 @@
                                 id="tanggal_penajam"
                                 name="tanggal_penajam"
                                 class="form-control"
-                                value="{{ old('tanggal_penajam', @$surat->tanggal_penajam) }}"
+                                value="{{ old('tanggal_penajam', @$surat->Pernyataan2->tanggal_penajam) }}"
                             >
                             <div class="error-message">Nama lengkap wajib diisi</div>
                         </div>
@@ -1330,38 +1346,38 @@
     }
 
     // Handle KTP upload
-    document.getElementById('ktpUpload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const ktpGroup = document.getElementById('ktpGroup');
-        const ktpFileName = document.getElementById('ktpFileName');
+    // document.getElementById('ktpUpload').addEventListener('change', function(e) {
+    //     const file = e.target.files[0];
+    //     const ktpGroup = document.getElementById('ktpGroup');
+    //     const ktpFileName = document.getElementById('ktpFileName');
 
-        if (file) {
-            if (validateFileSize(file)) {
-                ktpFileName.textContent = file.name;
-                ktpFileName.classList.add('uploaded');
-                ktpGroup.classList.add('has-file');
-            } else {
-                this.value = ''; // Reset input
-            }
-        }
-    });
+    //     if (file) {
+    //         if (validateFileSize(file)) {
+    //             ktpFileName.textContent = file.name;
+    //             ktpFileName.classList.add('uploaded');
+    //             ktpGroup.classList.add('has-file');
+    //         } else {
+    //             this.value = ''; // Reset input
+    //         }
+    //     }
+    // });
 
-    // Handle dokumen pendukung upload
-    document.getElementById('pendukungUpload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const pendukungGroup = document.getElementById('pendukungGroup');
-        const pendukungFileName = document.getElementById('pendukungFileName');
+    // // Handle dokumen pendukung upload
+    // document.getElementById('pendukungUpload').addEventListener('change', function(e) {
+    //     const file = e.target.files[0];
+    //     const pendukungGroup = document.getElementById('pendukungGroup');
+    //     const pendukungFileName = document.getElementById('pendukungFileName');
 
-        if (file) {
-            if (validateFileSize(file)) {
-                pendukungFileName.textContent = file.name;
-                pendukungFileName.classList.add('uploaded');
-                pendukungGroup.classList.add('has-file');
-            } else {
-                this.value = ''; // Reset input
-            }
-        }
-    });
+    //     if (file) {
+    //         if (validateFileSize(file)) {
+    //             pendukungFileName.textContent = file.name;
+    //             pendukungFileName.classList.add('uploaded');
+    //             pendukungGroup.classList.add('has-file');
+    //         } else {
+    //             this.value = ''; // Reset input
+    //         }
+    //     }
+    // });
 
     // Validasi NIK (hanya angka)
     document.getElementById('nik').addEventListener('input', function(e) {

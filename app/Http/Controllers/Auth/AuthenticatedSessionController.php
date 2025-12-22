@@ -123,7 +123,7 @@ class AuthenticatedSessionController extends Controller
                     'foto_ktp' => $gambarPath,
 
                     'role' => 'warga',
-                    'is_active' => false,
+                    'is_active' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

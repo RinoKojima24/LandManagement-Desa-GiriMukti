@@ -531,6 +531,9 @@ public function data(Request $request){
                 'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
                 // 'tanggal_pengukuran'=> $request->tanggal_pengukuran,
                 'foto_peta'=> $gambarPath,
+                'alamat' => $request->alamat,
+
+                'tanggal_pengukuran'=> $request->tanggal_pengukuran,
             ]);
 
                 $PendaftaranPertamaData = PendaftaranPertama::create([

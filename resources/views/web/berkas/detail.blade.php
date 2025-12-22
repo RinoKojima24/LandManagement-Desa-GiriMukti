@@ -101,9 +101,9 @@
                             <div class="p-3"><h3>Surat Pernyataan Pemasangan Tanda Batas dan Persetujuan Pihak Yang Berbatasan</h3></div>
                             <div class="p-1"></div>
                             <div class="p-1">
-                                @if(Auth::user()->role == "admin")
+                                {{-- @if(Auth::user()->role == "admin")
                                     <a href="{{ url('berkas/'.$query->id.'?list_surat=1') }}" class="btn btn-primary mr-2">Edit</a>
-                                @endif
+                                @endif --}}
                                 @if(isset($query->Pernyataan1))
                                     <a href="{{ url('berkas/'.$query->id.'/print?list_surat=1') }}" target="_blank" class="btn btn-success">Print</a>
                                 @else
@@ -120,9 +120,9 @@
                             <div class="p-3"><h3>Berita Acara Pengukuran Bidang Tanah</h3></div>
                             <div class="p-1"></div>
                             <div class="p-1">
-                                @if(Auth::user()->role == "admin")
+                                {{-- @if(Auth::user()->role == "admin")
                                     <a href="{{ url('berkas/'.$query->id.'?list_surat=2') }}" class="btn btn-primary mr-2">Edit</a>
-                                @endif
+                                @endif --}}
                                 @if(isset($query->BeritaAcara))
                                     <a href="{{ url('berkas/'.$query->id.'/print?list_surat=2') }}" target="_blank" class="btn btn-success">Print</a>
                                 @else
@@ -140,14 +140,26 @@
                             <div class="p-3"><h3>SURAT PERNYATAAN PENGUASAAN FISIK BIDANG TANAH</h3></div>
                             <div class="p-1"></div>
                             <div class="p-1">
-                                @if(Auth::user()->role == "admin")
+                                {{-- @if(Auth::user()->role == "admin")
                                     <a href="{{ url('berkas/'.$query->id.'?list_surat=3') }}" class="btn btn-primary mr-2">Edit</a>
-                                @endif
+                                @endif --}}
                                 @if(isset($query->Pernyataan2))
                                     <a href="{{ url('berkas/'.$query->id.'/print?list_surat=3') }}" target="_blank" class="btn btn-success">Print</a>
                                 @else
                                     Surat Belum dibuat!
                                 @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between w-100">
+                            <div class="p-3"><h3>History Chat / Progress Pengajuaan Surat</h3></div>
+                            <div class="p-1"></div>
+                            <div class="p-1">
+                                <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">Lihat</a>
                             </div>
                         </div>
                     </div>
@@ -202,13 +214,13 @@
                                                 <div class="col-sm-6">
                                                     <button type="submit" class="btn btn-success">Kirim / Simpan</button>
                                                 </div>
-                                                <div class="col-sm-6">
+                                                {{-- <div class="col-sm-6">
                                                     <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
-                                                </div>
+                                                </div> --}}
                                             </div>
                                         </form>
                                     @else
-                                        <a href="{{ url('history_chat/'.$query->id.'?status=surat&tipe_surat='.$_GET['tipe_surat']) }}" class="btn btn-primary">History Pesan</a>
+
                                     @endif
                                 </td>
                             </tr>

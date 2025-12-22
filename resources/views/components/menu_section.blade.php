@@ -5,36 +5,34 @@
     </div>
 
     {{-- Main Menu: 3 Menu Utama --}}
-    <div class="main-menu">
-        {{-- <a href="{{ route('permohonan_form') }}" class="menu-item">
-            <i class="fas fa-file-alt"></i>
-            <span>Pengajuan<br>Surat Tanah</span>
-        </a> --}}
-        <a href="{{ url('pengajuan_surat') }}" class="menu-item">
-            <i class="fas fa-file-alt"></i>
-            <span>Pengajuan<br>Surat Tanah</span>
-        </a>
+    @if(Auth::user()->role != "warga")
+        <div class="main-menu">
+            <a href="{{ url('pengajuan_surat') }}" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                <span>Pengajuan<br>Surat Tanah</span>
+            </a>
 
-        <a href="{{ url('pengajuan_keterangan') }}" class="menu-item">
-            <i class="fas fa-file-alt"></i>
-            <span>Pengajuan<br>Surat Keterangan</span>
-        </a>
+            <a href="{{ url('pengajuan_keterangan') }}" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                <span>Pengajuan<br>Surat Keterangan</span>
+            </a>
 
-
-        {{-- <a href="{{ route('keterangan_form') }}" class="menu-item">
-            <i class="fas fa-file-alt"></i>
-            <span>Pengajuan<br>Surat Keterangan</span>
-        </a> --}}
-
-        <a href="{{ url('/tanah') }}" class="menu-item">
-            <i class="fas fa-file-invoice"></i>
-            <span>Data Peta<br>Tanah Desa</span>
-        </a>
-    </div>
+            <a href="{{ url('/tanah') }}" class="menu-item">
+                <i class="fas fa-file-invoice"></i>
+                <span>Data Peta<br>Tanah Desa</span>
+            </a>
+        </div>
+    @endif
 
     {{-- Secondary Menu: 8 Menu Grid --}}
     <div class="secondary-menu">
         @if(Auth::user()->role == "admin")
+            <a href="{{ url('rt') }}" class="secondary-item">
+                <div class="icon-circle yellow">
+                    <i class="fas fa-download"></i>
+                </div>
+                <span>Data RT</span>
+            </a>
             <a href="{{ url('warga') }}" class="secondary-item">
                 <div class="icon-circle green">
                     <i class="fas fa-download"></i>
@@ -63,6 +61,14 @@
             <span>Swaplopting</span>
         </a> --}}
 
+        @if(Auth::user()->role == "warga")
+            <a href="{{ url('/tanah') }}" class="secondary-item">
+                <div class="icon-circle purple">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <span>Data Tanah</span>
+            </a>
+        @endif
 
 
         <a href="{{ url('/data-tanah/titik') }}" class="secondary-item">

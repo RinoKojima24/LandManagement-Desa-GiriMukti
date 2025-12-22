@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('jalan')->nullable();
             $table->string('rt_rw')->nullable();
 
+            $table->unsignedBigInteger('rt_id')->nullable();
+
             $table->string('panjang')->nullable();
             $table->string('lebar')->nullable();
             $table->string('luas')->nullable();

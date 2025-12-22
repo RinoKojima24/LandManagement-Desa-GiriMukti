@@ -16,11 +16,13 @@ return new class extends Migration
             $table->unsignedBigInteger('surat_permohonan_id');
             $table->date('tanggal_dilaksanakan');
 
+            $table->unsignedInteger('operator_1_id')->nullable();
             $table->string('nama_1')->nullable();
             $table->string('nip_1')->nullable();
             $table->string('jabatan_1')->nullable();
             $table->string('tugas_1')->nullable();
 
+            $table->unsignedInteger('operator_2_id')->nullable();
             $table->string('nama_2')->nullable();
             $table->string('nip_2')->nullable();
             $table->string('jabatan_2')->nullable();

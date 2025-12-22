@@ -52,6 +52,7 @@
                 <div class="card">
                     <div class="card-body">
                         <p>{{ $a->pesan }}</p>
+                        <p>{{ date('d/m/Y H:i:s') }}</p>
                     </div>
                 </div>
             @endforeach

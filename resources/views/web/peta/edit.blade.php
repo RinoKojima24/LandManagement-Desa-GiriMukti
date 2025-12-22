@@ -412,16 +412,16 @@ input[type="file"] {
                     </div>
                     <div class="row container">
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="provinsi" id="provinsi" value="{{ $peta->SuratUkur->provinsi ?? ""}}" placeholder="Provinsi" class="form-control">
+                            <input type="text" name="provinsi" id="provinsi" readonly value="{{ $peta->SuratUkur->provinsi ?? "Kalimantan Timur"}}" placeholder="Provinsi" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kabupaten" id="kabupaten" value="{{ $peta->SuratUkur->kabupaten ?? "" }}" placeholder="Kabupaten / Kota" class="form-control">
+                            <input type="text" name="kabupaten" id="kabupaten" readonly value="{{ $peta->SuratUkur->kabupaten ?? "Penajam Paser Utara" }}" placeholder="Kabupaten / Kota" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kecamatan" id="kecamatan" value="{{ $peta->SuratUkur->kecamatan ?? "" }}" placeholder="Kecamatan" class="form-control">
+                            <input type="text" name="kecamatan" id="kecamatan" readonly value="{{ $peta->SuratUkur->kecamatan ?? "Penajam" }}" placeholder="Kecamatan" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="desa" id="desa" value="{{ $peta->SuratUkur->desa ?? "" }}" placeholder="Desa / Kelurahan" class="form-control">
+                            <input type="text" name="desa" id="desa" readonly value="{{ $peta->SuratUkur->desa ?? "GIRIMUKTI" }}" placeholder="Desa / Kelurahan" class="form-control">
                         </div>
                     </div>
 
@@ -602,10 +602,10 @@ input[type="file"] {
                     <div class="form-group col-sm-12 col-md-6">
 
                         <div class="upload-section">
-                            <div class="upload-label">Foto Peta<span class="required">*</span></div>
+                            <div class="upload-label">Foto Bukti<span class="required">*</span></div>
 
                             <div class="upload-group" id="fotoPetaGroup">
-                                <div class="upload-input" id="FotoPetaFileName">Foto Peta (JPG, PNG Maks 2MB)</div>
+                                <div class="upload-input" id="FotoPetaFileName">Foto Bukti (JPG, PNG Maks 2MB)</div>
                                 <label for="ktpUpload" class="upload-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>

@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('rts', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
+            $table->string('nama_rt');
+            $table->string('nomor_rt');
+
             $table->text('geojson');
             $table->timestamps();
         });

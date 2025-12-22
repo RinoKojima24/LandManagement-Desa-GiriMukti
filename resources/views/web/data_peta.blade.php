@@ -7,9 +7,15 @@
         <div class="d-flex justify-content-between">
             <div class="d-flex align-items-center mb-3">
                 @if (isset($_GET['pemilik']))
-                    <a href="{{ url('tanah') }}" class="text-decoration-none text-dark me-3">
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
+                    @if(Auth::user()->role == "warga")
+                        <a href="{{ url('home') }}" class="text-decoration-none text-dark me-3">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    @else
+                        <a href="{{ url('tanah') }}" class="text-decoration-none text-dark me-3">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    @endif
                 @else
                     <a href="{{ route('home') }}" class="text-decoration-none text-dark me-3">
                         <i class="fas fa-arrow-left"></i>

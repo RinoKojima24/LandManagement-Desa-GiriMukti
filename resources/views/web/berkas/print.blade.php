@@ -672,15 +672,15 @@
                         <td></td>
                     </tr>
                     <tr>
-                        <td>Ketua RT. <span class="isian-garis-bawah" style="min-width: 100px;">{{ $query->Pernyataan1->rt ?? '' }}</span> / Desa Girilmukti</td>
+                        <td>Ketua <span class="isian-garis-bawah" style="min-width: 100px;">{{ $query->Pernyataan1->rt ?? '' }}</span> / Desa Girilmukti</td>
                         <td></td>
                         <td>Kepala Desa Girilmukti</td>
                     </tr>
                     <tr>
-                        <td><div class="ttd-garis"></div>{{ $query->Pernyataan1->nama_ketua_rt ?? '' }}</td>
+                        <td><div class="ttd-garis"></div> <br>{{ $query->Pernyataan1->nama_ketua_rt ?? '' }}</td>
                         <td></td>
                         <td>
-                            <div class="ttd-garis"></div>
+                            <div class="ttd-garis"></div> <br>
                             (Hendra Jatmiko Sormin, S.Si., M.Ling)
                         </td>
                     </tr>

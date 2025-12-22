@@ -219,15 +219,7 @@ input[type="file"] {
                 @endif
 
                 <div class="row">
-                    <div class="form-group col-sm-12">
-                        <br>
-                        <select name="opsi" class="form-control" id="opsi">
-                            <option value="0">Pendaftaran Pertama</option>
-                            <option value="1">Pendaftaran Peralihan Hak</option>
-                            <option value="2">Surat Ukur</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-12">
+                    <div class="form-group col-sm-12" style="display: none;">
                         <label for="">Jalan (Polyline)</label>
                         <textarea
                             id="jalan"
@@ -237,6 +229,34 @@ input[type="file"] {
                             readonly
                             placeholder="lat,lng per baris"
                         ></textarea>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <label for="">Tanggal Pengukuran</label>
+                        <input type="datetime-local" name="tanggal_pengukuran" id="tanggal_pengukuran" value="{{ old('tanggal_pengukuran', @$peta->tanggal_pengukuran) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Skala</label>
+                        <input type="text" name="skala" id="skala" value="{{ old('skala', @$peta->skala) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Nama Jalan</label>
+                        <input type="text" name="nama_jalan" id="nama_jalan" value="{{ old('nama_jalan', @$peta->nama_jalan) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Penjelasan</label>
+                        <textarea name="penjelasan" id="penjelasan" class="form-control"  cols="30" rows="10">{{ old('penjelasan', @$peta->penjelasan) }}</textarea>
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Alamat</label>
+                        <textarea name="alamat" id="alamat" class="form-control"  cols="30" rows="10">{{ old('alamat', @$peta->alamat) }}</textarea>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <br>
+                        <select name="opsi" class="form-control" id="opsi">
+                            <option value="0">Pendaftaran Pertama</option>
+                            <option value="1">Pendaftaran Peralihan Hak</option>
+                            <option value="2">Surat Ukur</option>
+                        </select>
                     </div>
                 </div>
                 <div id="pendaftaran_pertama_form" class="row">
@@ -362,16 +382,16 @@ input[type="file"] {
                     </div>
                     <div class="row container">
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="provinsi" id="provinsi" placeholder="Provinsi" class="form-control">
+                            <input type="text" name="provinsi" id="provinsi" placeholder="Provinsi" readonly value="Kalimantan Timur" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kabupaten" id="kabupaten" placeholder="Kabupaten / Kota" class="form-control">
+                            <input type="text" name="kabupaten" id="kabupaten" placeholder="Kabupaten / Kota" readonly value="Penajam Paser Utara" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="kecamatan" id="kecamatan" placeholder="Kecamatan" class="form-control">
+                            <input type="text" name="kecamatan" id="kecamatan" placeholder="Kecamatan" readonly value="Penajam" class="form-control">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <input type="text" name="desa" id="desa" placeholder="Desa / Kelurahan" class="form-control">
+                            <input type="text" name="desa" id="desa" placeholder="Desa / Kelurahan" value="GIRIMUKTI" readonly class="form-control">
                         </div>
                     </div>
 
@@ -514,10 +534,10 @@ input[type="file"] {
                     <div class="form-group col-sm-12 col-md-6">
 
                         <div class="upload-section">
-                            <div class="upload-label">Foto Peta<span class="required">*</span></div>
+                            <div class="upload-label">Foto Bukti<span class="required">*</span></div>
 
                             <div class="upload-group" id="fotoPetaGroup">
-                                <div class="upload-input" id="FotoPetaFileName">Foto Peta (JPG, PNG Maks 2MB)</div>
+                                <div class="upload-input" id="FotoPetaFileName">Foto Bukti (JPG, PNG Maks 2MB)</div>
                                 <label for="ktpUpload" class="upload-btn">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>

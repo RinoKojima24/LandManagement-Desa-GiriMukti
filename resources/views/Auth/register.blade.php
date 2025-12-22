@@ -293,7 +293,7 @@
 
                         setTimeout(() => {
                             window.location.href = "{{ url('login') }}";
-                        }, 5000);
+                        }, 3000);
                     } else {
                         // alert("OTP salah!");
                         showNotif(res.message);

@@ -12,8 +12,10 @@ use App\Models\BeritaAcara;
 use App\Models\HistoryChat;
 use App\Models\PernyataanPemasanganTenda;
 use App\Models\PernyataanPenguasaan;
+use App\Models\Rt;
 use App\Models\SuratKeterangan;
 use App\Models\SuratPermohonan;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
@@ -180,6 +182,20 @@ public function edit($id) {
 
     }
 
+    if(isset($_GET['apalah'])) {
+        $data['warga'] = User::where('role', 'warga')->get();
+        $data['operator'] = User::where('role', 'operator')->get();
+
+        $data['surat'] = SuratPermohonan::where('id', $id)->first();
+        $data['rt'] = Rt::orderBy('nama', 'ASC')->get();
+
+        if($_GET['apalah'] == "0") {
+            return view('web.berkas.edit', $data);
+        }
+    }
+
+
+
     // dd($data);
     return view('web.berkas.detail', $data);
 }
@@ -200,6 +216,147 @@ public function edit($id) {
 public function update(Request $request, $id) {
 
     // dd("ASD");
+    if($request->apalah == "0") {
+        $rt = Rt::find($request->rt_id);
+        $warga = User::find($request->user_id);
+
+        $idPermohonan = SuratPermohonan::where('id', $id)->update([
+            'user_id' => $warga->id,
+            'nama' => $warga->nama_petugas,
+            'nik' => $request->nik,
+            'tempat' => $request->tempat,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'pekerjaan' => $request->pekerjaan,
+            'agama' => $request->agama,
+            'alamat' => $request->alamat,
+
+            'rt_id' => $rt->id,
+            'rt_rw' => $rt->nama,
+            'jalan' => $request->jalan,
+
+
+            'panjang' => $request->panjang,
+            'lebar' => $request->lebar,
+            'luas' => $request->luas,
+
+            'kondisi_fisik' => $request->kondisi_fisik,
+            'dasar_perolehan' => $request->dasar_perolehan,
+
+            // 'sebelah_utara' => $request->sebelah_utara,
+            // 'sebelah_timur' => $request->sebelah_timur,
+
+            // 'sebelah_selatan' => $request->sebelah_selatan,
+            // 'sebelah_barat' => $request->sebelah_barat,
+
+            'sebelah_utara' => $request->sebelah_utara_nama,
+            'sebelah_timur' => $request->sebelah_timur_nama,
+
+            'sebelah_selatan' => $request->sebelah_selatan_nama,
+            'sebelah_barat' => $request->sebelah_barat_nama,
+
+            'tahun_dikuasai' => $request->tahun_dikuasai,
+
+
+        ]);
+
+        if ($request->hasFile('ktp')) {
+            $ktpFile = $request->file('ktp');
+            $ktpPath = $ktpFile->store('ktp');
+
+            $idPermohonan = SuratPermohonan::where('id', $id)->update([
+                'ktp' => $ktpPath,
+            ]);
+        }
+
+        // Handle upload file Dokumen Pendukung
+        if ($request->hasFile('dokumen_pendukung')) {
+            $dokumenFile = $request->file('dokumen_pendukung');
+            $dokumenPath = $dokumenFile->store('dokumen_pendukung');
+
+            $idPermohonan = SuratPermohonan::where('id', $id)->update([
+                'dokumen_pendukung' => $dokumenPath,
+            ]);
+
+        }
+
+        // dd($request->rt_1);
+        PernyataanPemasanganTenda::where('surat_permohonan_id',$id)->update([
+            'sebelah_utara_nama' => $request->sebelah_utara_nama,
+            'sebelah_utara_nik' => $request->sebelah_utara_nik,
+            'sebelah_timur_nama' => $request->sebelah_timur_nama,
+            'sebelah_timur_nik' => $request->sebelah_timur_nik,
+            'sebelah_selatan_nama' => $request->sebelah_selatan_nama,
+            'sebelah_selatan_nik' => $request->sebelah_selatan_nik,
+            'sebelah_barat_nama' => $request->sebelah_barat_nama,
+            'sebelah_barat_nik' => $request->sebelah_barat_nik,
+            'pembuat_pernyataan' => $request->pembuat_pernyataan_1,
+
+            // 'rt'=> $request->rt_1,
+            // 'nama_ketua_rt' => $request->nama_ketua_rt,
+
+            'rt'=> $rt->nama,
+            'nama_ketua_rt' => $rt->nama_rt,
+        ]);
+
+        // dd($request->tanggal_dilaksanakan);
+
+        $operator1 = User::find($request->operator_1_id);
+        $operator2 = User::find($request->operator_2_id);
+
+        BeritaAcara::where('surat_permohonan_id', $id)->update([
+            'tanggal_dilaksanakan' => $request->tanggal_dilaksanakan,
+            // 'nama_1' => $request->nama_1,
+            // 'nip_1' => $request->nip_1,
+            // 'jabatan_1' => $request->jabatan_1,
+            // 'tugas_1' => $request->tugas_1,
+
+            'operator_1_id' => $operator1->id,
+            'nama_1' => $operator1->nama_petugas,
+            'nip_1' => $operator1->nip,
+            'jabatan_1' => $operator1->jabatan,
+            'tugas_1' => '-',
+
+            'operator_2_id' => $operator2->id,
+            'nama_2' => $operator2->nama_petugas,
+            'nip_2' => $operator2->nip,
+            'jabatan_2' => $operator2->jabatan,
+            'tugas_2' => "-",
+        ]);
+
+
+        PernyataanPenguasaan::where('surat_permohonan_id', $id)->update([
+            'tahun_kuasa' => $request->tahun_kuasa,
+            'nama_peroleh' => $request->nama_peroleh,
+            'pembuat_pernyataan' => $request->pembuat_pernyataan_2,
+            'nama_saksi_1' => $request->nama_saksi_1,
+            'nik_saksi_1' => $request->nik_saksi_1,
+            'nama_saksi_2' => $request->nama_saksi_2,
+            'nik_saksi_2' => $request->nik_saksi_2,
+
+            // 'nomor_rt' => $request->nomor_rt,
+            // 'rt' => $request->rt,
+            // 'nama_rt' => $request->nama_rt,
+
+            'nomor_rt' => $rt->nomor_rt,
+            'rt' => $rt->nama,
+            'nama_rt' => $rt->nama_rt,
+
+            'tanggal_rt' => $request->tanggal_rt,
+            'nomor_kades' => $request->nomor_kades,
+            'tanggal_kades' => $request->tanggal_kades,
+            'nomor_camat' => $request->nomor_camat,
+            'tanggal_penajam' => $request->tanggal_penajam,
+        ]);
+
+
+
+
+
+
+        return redirect()->back()->with('success', 'Surat berhasil diubah');
+    }
+
+
     if(isset($_GET['tipe_surat'])) {
         if($_GET['tipe_surat'] == "1") {
             $data['query'] = SuratKeterangan::where('id_permohonan', $id)->update([
