@@ -108,6 +108,8 @@ class AuthenticatedSessionController extends Controller
 
             if($request->type == "register") {
 
+                $gambarPath = null;
+
                 if ($request->hasFile('foto_ktp')) {
                     $gambarFile = $request->file('foto_ktp');
                     $gambarPath = $gambarFile->store('foto_ktp');
@@ -131,6 +133,7 @@ class AuthenticatedSessionController extends Controller
                 return response()->json([
                     'status' => 'ok',
                     'message' => 'OTP benar',
+                    'test' => $gambarPath,
                 ]);
 
             }

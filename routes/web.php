@@ -104,6 +104,20 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/', fn() => view('Auth.login'))->name('guest.home');
     Route::get('/test', function() {
+        $user = User::create([
+            'email' => "Nom@email.com",
+            'nama_petugas' => "ASD",
+            'no_telepon' => "12312",
+            'nik' => "11111",
+            'foto_ktp' => "ASd",
+
+            'role' => 'warga',
+            'is_active' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        dd($user);
         // $pesan = "Ayam\nsapi\nkambing";
         // WaHelpers::sendWa('081212379429', $pesan);
     });
