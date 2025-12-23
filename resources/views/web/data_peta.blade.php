@@ -102,6 +102,7 @@
             </div>
         </div>
         @endforelse
+        {{ $data->appends(request()->query())->links() }}
     </div>
     @else
         {{-- @dd("ASD") --}}

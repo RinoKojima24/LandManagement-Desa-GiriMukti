@@ -281,7 +281,7 @@ public function data(Request $request){
         if(isset($_GET['rt_id'])) {
             $data['data'] = $data['data']->where('rt_id', $_GET['rt_id']);
         }
-        $data['data'] = $data['data']->get();// Perbaikan: assign hasil get() ke variable
+        $data['data'] = $data['data']->paginate(15);// Perbaikan: assign hasil get() ke variable
 
 
     } else {
