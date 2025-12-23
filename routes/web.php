@@ -186,7 +186,7 @@ Route::middleware('guest')->group(function () {
                 // 'luas' => $request->luas,
                 'peruntukan'=> $nama,
                 'foto_denah' => null,
-                'titik_kordinat'=>  $kordinat_polygon_array[0][0][1].", ".$kordinat_polygon_array[0][0][0],
+                'titik_kordinat'=>  ($kordinat_polygon_array[0][0][1] ?? 0).", ".($kordinat_polygon_array[0][0][0] ?? 0),
                 'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
                 // 'tanggal_pengukuran'=> $request->tanggal_pengukuran,
                 'foto_peta'=> null,
