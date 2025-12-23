@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('surat_permohonan_id');
             $table->date('tanggal_dilaksanakan');
+            $table->string('sket_lokasi')->nullable();
+
 
             $table->unsignedInteger('operator_1_id')->nullable();
             $table->string('nama_1')->nullable();

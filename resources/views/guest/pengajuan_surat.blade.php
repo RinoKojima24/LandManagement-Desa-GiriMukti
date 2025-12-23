@@ -1072,6 +1072,28 @@
                         </div> --}}
                     </div>
                 </div>
+                <h3 style="font-size: 24px;"><b>Sket Lokasi</b></h3>
+                <br>
+                @for ($i = 0; $i < 4; $i++)
+                    <h3 style="font-size: 18px;">Kordinat {{ $i + 1 }}</h3>
+                    <div class="row">
+                        <div class="col-md-4 col-sm-12 form-group">
+                            <div class="form-group">
+                                <input type="text" name="kordinat_long[]" placeholder="Long (116.67446085203458)" id="">
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-12 form-group">
+                            <div class="form-group">
+                                <input type="text" name="kordinat_lat[]" placeholder="Lat (-1.3471174653469475)" id="">
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-sm-12 form-group">
+                            <div class="form-group">
+                                <input type="text" name="kordinat_sisi[]" placeholder="Panjang (10 cm)" id="">
+                            </div>
+                        </div>
+                    </div>
+                @endfor
             </div>
             <h2 style="font-weight: bold; font-size: 24px; color: red;">SURAT PERNYATAAN PENGUASAAN FISIK BIDANG TANAH</h2>
             <div id="list_surat_3">

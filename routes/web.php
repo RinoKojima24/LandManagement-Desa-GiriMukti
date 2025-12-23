@@ -18,15 +18,18 @@ use App\Http\Controllers\PermohonanSuratController;
 use App\Http\Controllers\RtController;
 use App\Http\Controllers\WargaController;
 use App\Models\BeritaAcara;
+use App\Models\PendaftaranPertama;
 use App\Models\PernyataanPemasanganTenda;
 use App\Models\PernyataanPenguasaan;
 use App\Models\PetaTanah;
 use App\Models\Rt;
 use App\Models\SuratPermohonan;
+use App\Models\SuratUkur;
 use App\Models\User;
 use Database\Seeders\NontificationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -41,6 +44,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthenticatedSessionController::class, 'register']);
     Route::post('/register/send-otp', [AuthenticatedSessionController::class, 'sendOtp']);
     Route::post('/register/check-otp', [AuthenticatedSessionController::class, 'checkOtp']);
+
+
 
     Route::get("/show_geojson", function() {
         $json = file_get_contents("geojson_test.geojson");
@@ -109,22 +114,110 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/', fn() => view('Auth.login'))->name('guest.home');
     Route::get('/test', function() {
-        // $user = User::create([
-        //     'email' => "Nom@email.com",
-        //     'nama_petugas' => "ASD",
-        //     'no_telepon' => "12312",
-        //     'nik' => "11111",
-        //     'foto_ktp' => "ASd",
+        $namefile = $_GET['file'];
+        $path = storage_path('app/public/bidang/'.$namefile);
 
-        //     'role' => 'warga',
-        //     'is_active' => false,
-        //     'created_at' => now(),
-        //     'updated_at' => now(),
-        // ]);
+        if (!File::exists($path)) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
 
-        // dd($user);
-        // $pesan = "Ayam\nsapi\nkambing";
-        // WaHelpers::sendWa('081212379429', $pesan);
+        $geojson = json_decode(File::get($path), true);
+
+        $rt_cari = str_replace('_', '. ', $geojson['name']);
+        $rt_query = Rt::where('nama', 'like', '%'.$rt_cari.'%')->first();
+        // dd($geojson['features'][2]);
+        // dd($geojson['features'][0]['geometry']['coordinates']);
+
+        foreach($geojson['features'] as $ab => $valuenya) {
+            $features = [];
+            $kordinat_polygon_array = [];
+
+            // dd($valuenya);
+
+            $nama = $geojson['features'][$ab]['properties']['Nama'];
+            $luas = $geojson['features'][$ab]['properties']['Luas'];
+
+
+            if(isset($geojson['features'][$ab]['geometry']['coordinates'])) {
+                foreach($geojson['features'][$ab]['geometry']['coordinates'] as $a) {
+                    $kordinat_polygon_array[] = $a;
+                }
+            }
+            $features[] = [
+                "type" => "Feature",
+                "properties" => [
+                    "layer" => "tanah",
+                    "name" => $nama
+                ],
+                "geometry" => [
+                    "type" => "Polygon",
+                    "coordinates" => $kordinat_polygon_array,
+                ]
+            ];
+
+
+            $result_geojson = [
+                "type" => "FeatureCollection",
+                "features" => $features
+            ];
+
+
+            // Convert ke JSON
+            $json = json_encode($result_geojson, JSON_PRETTY_PRINT);
+
+            // Simpan file
+            $lastId = PetaTanah::max('id') ?? 0;
+            $filename = 'tanah_sementara_' . time() .'_'.$lastId. '.geojson';
+            Storage::disk('public')->put('geojson/' . $filename, $json);
+
+
+            $peta = PetaTanah::create([
+                // 'nomor_bidang' => str_pad(0, 3, '0', STR_PAD_LEFT)."/".date('Y'),
+                'user_id' => null,
+                'rt_id'=> $rt_query->id,
+
+                'skala' => null,
+                'penjelasan' => null,
+                'nama_jalan' => null,
+
+                // 'status'=> $request->status,
+                // 'panjang' => $request->panjang,
+                // 'lebar' => $request->lebar,
+                // 'luas' => $request->luas,
+                'peruntukan'=> $nama,
+                'foto_denah' => null,
+                'titik_kordinat'=>  $kordinat_polygon_array[0][0][1].", ".$kordinat_polygon_array[0][0][0],
+                'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
+                // 'tanggal_pengukuran'=> $request->tanggal_pengukuran,
+                'foto_peta'=> null,
+                'alamat' => null,
+
+                'tanggal_pengukuran'=> null,
+            ]);
+
+            $PendaftaranPertamaData = PendaftaranPertama::create([
+                'peta_tanah_id' => $peta->id,
+                'luas_surat_ukur' => $luas,
+            ]);
+
+            $SuratUkur = SuratUkur::create([
+                'peta_tanah_id' => $peta->id,
+                'provinsi' => "Kalimantan Timur",
+                'kabupaten' => "Penajam Paser Utara",
+                'kecamatan' => "Penajam",
+                'desa' => "GIRIMUKTI",
+            ]);
+        }
+
+        // dd($kordinat_polygon_array);
+        // dd($rt_query);
+
+
+        //
+
+
+        // return response()->json($geojson);
+        dd("Berhasil");
     });
 
 });
@@ -355,6 +448,30 @@ Route::middleware(['auth'])->group(function () {
                 $berita->surat_permohonan_id = $idPermohonan->id;
                 $berita->tanggal_dilaksanakan = $request->tanggal_dilaksanakan;
 
+                $kordinat_polygon_array = [];
+                $kordinat_jalan_array = [];
+                $kordinat_coords_labels = [];
+                // if()
+                $fileName = "-";
+                if(isset($request->kordinat_lat)) {
+                    foreach($request->kordinat_lat as $index => $value) {
+                        // dd(floatval($value));
+                        $kordinat_polygon_array[] = [floatval($request->kordinat_long[$index]), floatval($value)]; // GeoJSON: [lng, lat]
+                        $kordinat_coords_labels[] = intval($request->kordinat_sisi[$index]);
+                    }
+
+
+
+                    if ($kordinat_polygon_array[0] !== end($kordinat_polygon_array)) {
+                        $kordinat_polygon_array[] = $kordinat_polygon_array[0];
+                    }
+
+                    $imageContent = WaHelpers::renderPNGlokasi($kordinat_polygon_array, $kordinat_coords_labels, $kordinat_jalan_array, '-');
+                    $fileName = 'peta_lokasi_' . time() . '.png';
+
+                    Storage::disk('public')->put('foto_denah_lokasi/'.$fileName, $imageContent);
+                    $berita->sket_lokasi = 'storage/foto_denah_lokasi/'.$fileName;
+                }
                 // $berita->nama_1 = $request->nama_1;
                 // $berita->nip_1 = $request->nip_1;
                 // $berita->jabatan_1 = $request->jabatan_1;

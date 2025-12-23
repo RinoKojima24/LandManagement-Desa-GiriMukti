@@ -9,4 +9,8 @@ class BeritaAcara extends Model
     //
     protected $guarded = [];
 
+    public function lokasi() {
+        return $this->hasMany(BeritaAcaraLokasi::class);
+    }
+
 }

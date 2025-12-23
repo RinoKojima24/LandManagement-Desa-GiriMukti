@@ -230,9 +230,22 @@ input[type="file"] {
                             placeholder="lat,lng per baris"
                         ></textarea>
                     </div>
-                    <div class="form-group col-sm-12">
+                    <div class="form-group col-sm-6">
                         <label for="">Tanggal Pengukuran</label>
                         <input type="datetime-local" name="tanggal_pengukuran" id="tanggal_pengukuran" value="{{ old('tanggal_pengukuran', @$peta->tanggal_pengukuran) }}" class="form-control">
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Pilih RT</label>
+                        <select name="rt_id" id="rt_id" class="form-control">
+                            @foreach ($list_rt as $a)
+                                <option value="{{ $a->id }}" {{ old('rt_id', @$peta->rt_id) == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
+                            @endforeach
+                        </select>
+
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <label for="">Nama Pemilik<span class="required">*</span></label>
+                        <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan', @$peta->peruntukan) }}</textarea>
                     </div>
                     <div class="form-group col-sm-6">
                         <label for="">Skala</label>

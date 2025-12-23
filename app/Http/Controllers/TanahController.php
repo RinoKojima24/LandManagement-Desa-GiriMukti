@@ -265,10 +265,21 @@ public function data(Request $request){
 
         }
 
+        $data['list_rt'] =  Rt::orderBy('nama', 'ASC')->get();
+
         if($_GET['pemilik'] == 0) {
             $data['data'] = PetaTanah::orderBy('created_at', 'DESC');
         } else {
             $data['data'] = PetaTanah::where('user_id', $_GET['pemilik'])->orderBy('created_at', 'DESC');
+        }
+
+        if(isset($_GET['search'])) {
+            $data['data'] = $data['data']->where('peruntukan', 'LIKE', '%'.$_GET['search'].'%');
+
+        }
+
+        if(isset($_GET['rt_id'])) {
+            $data['data'] = $data['data']->where('rt_id', $_GET['rt_id']);
         }
         $data['data'] = $data['data']->get();// Perbaikan: assign hasil get() ke variable
 
@@ -313,6 +324,8 @@ public function data(Request $request){
 
         // dd($data['rtList']);
         $data['warga'] = User::where('id', $_GET['pemilik'])->first();
+        $data['list_rt'] = Rt::orderBy('nama', 'ASC')->get();
+
         return view('web.peta.tambah', $data);
     }
 
@@ -330,6 +343,8 @@ public function data(Request $request){
             $data['rtList'][] = ['nama' => $a->nama, 'file' => asset($a->geojson)];
         }
         $data['peta'] = PetaTanah::find($id);
+        $data['warga_list'] = User::where('role', 'warga')->get();
+        $data['list_rt'] =  Rt::orderBy('nama', 'ASC')->get();
         // dd($data['permohonans'][0]->id_permohonan);
         return view('web.peta.edit', $data);
     }
@@ -448,7 +463,7 @@ public function data(Request $request){
 
             // =======================
             // 3. FEATURE COLLECTION
-            // =======================
+            // ======================= s
             $features = [];
 
             // Feature polygon tanah
@@ -516,6 +531,7 @@ public function data(Request $request){
             $peta = PetaTanah::create([
                 // 'nomor_bidang' => str_pad(0, 3, '0', STR_PAD_LEFT)."/".date('Y'),
                 'user_id' => $request->user_id,
+                'rt_id'=> $request->rt_id,
 
                 'skala' => $request->skala,
                 'penjelasan' => $request->penjelasan,
@@ -525,7 +541,7 @@ public function data(Request $request){
                 // 'panjang' => $request->panjang,
                 // 'lebar' => $request->lebar,
                 // 'luas' => $request->luas,
-                // 'peruntukan'=> $request->peruntukan,
+                'peruntukan'=> $request->peruntukan,
                 'foto_denah' => 'foto_denah/'.$fileName,
                 'titik_kordinat'=> $request->titik_kordinat,
                 'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
@@ -805,12 +821,12 @@ public function data(Request $request){
             Storage::disk('public')->put('foto_denah/'.$fileName, $imageContent);
 
             PetaTanah::where('id',$id)->update([
-                // 'user_id' => $request->user_id,
+                'user_id' => $request->warga_id,
                 // 'status'=> $request->status,
                 // 'panjang' => $request->panjang,
                 // 'lebar' => $request->lebar,
                 // 'luas' => $request->luas,
-                // 'peruntukan'=> $request->peruntukan,
+                'peruntukan'=> $request->peruntukan,
                 'titik_kordinat'=> $request->titik_kordinat,
                 'titik_kordinat_polygon'=> 'storage/geojson/'.$filename,
                 'foto_denah' => 'foto_denah/'.$fileName,
@@ -827,6 +843,8 @@ public function data(Request $request){
                 // 'titik_kordinat_4'=> $request->titik_kordinat_4,
 
                 'tanggal_pengukuran'=> $request->tanggal_pengukuran,
+                'rt_id'=> $request->rt_id,
+
                 // 'foto_peta'=> $gambarPath,
             ]);
 

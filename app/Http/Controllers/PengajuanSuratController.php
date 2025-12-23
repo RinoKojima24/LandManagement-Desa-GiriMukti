@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 use App\Helpers\WaHelpers;
 use App\Http\Requests\PengajuanSuratRequest;
 use App\Models\BeritaAcara;
+use App\Models\BeritaAcaraLokasi;
 use App\Models\HistoryChat;
 use App\Models\PernyataanPemasanganTenda;
 use App\Models\PernyataanPenguasaan;
@@ -220,6 +221,8 @@ public function update(Request $request, $id) {
         $rt = Rt::find($request->rt_id);
         $warga = User::find($request->user_id);
 
+        // dd("Kurado");
+
         $idPermohonan = SuratPermohonan::where('id', $id)->update([
             'user_id' => $warga->id,
             'nama' => $warga->nama_petugas,
@@ -303,7 +306,31 @@ public function update(Request $request, $id) {
         $operator1 = User::find($request->operator_1_id);
         $operator2 = User::find($request->operator_2_id);
 
-        BeritaAcara::where('surat_permohonan_id', $id)->update([
+        $kordinat_polygon_array = [];
+        $kordinat_jalan_array = [];
+        $kordinat_coords_labels = [];
+        // if()
+        $fileName = "-";
+        if(isset($request->kordinat_lat)) {
+            foreach($request->kordinat_lat as $index => $value) {
+                // dd(floatval($value));
+                $kordinat_polygon_array[] = [floatval($request->kordinat_long[$index]), floatval($value)]; // GeoJSON: [lng, lat]
+                $kordinat_coords_labels[] = intval($request->kordinat_sisi[$index]);
+            }
+
+
+
+            if ($kordinat_polygon_array[0] !== end($kordinat_polygon_array)) {
+                $kordinat_polygon_array[] = $kordinat_polygon_array[0];
+            }
+
+            $imageContent = WaHelpers::renderPNGlokasi($kordinat_polygon_array, $kordinat_coords_labels, $kordinat_jalan_array, '-');
+            $fileName = 'peta_lokasi_' . time() . '.png';
+
+            Storage::disk('public')->put('foto_denah_lokasi/'.$fileName, $imageContent);
+        }
+
+        $beritaAcara = BeritaAcara::where('surat_permohonan_id', $id)->update([
             'tanggal_dilaksanakan' => $request->tanggal_dilaksanakan,
             // 'nama_1' => $request->nama_1,
             // 'nip_1' => $request->nip_1,
@@ -321,7 +348,22 @@ public function update(Request $request, $id) {
             'nip_2' => $operator2->nip,
             'jabatan_2' => $operator2->jabatan,
             'tugas_2' => "-",
+
+            'sket_lokasi' => 'storage/foto_denah_lokasi/'.$fileName,
         ]);
+
+        $beritaAcaraQuery = BeritaAcara::where('surat_permohonan_id', $id)->first();
+        // dd($beritaAcaraQuery);
+        $beritaAcara_lokasi = BeritaAcaraLokasi::where('berita_acara_id', $beritaAcaraQuery->id)->delete();
+
+        foreach($request->kordinat_lat as $index => $value) {
+            BeritaAcaraLokasi::create([
+                'berita_acara_id' => $beritaAcaraQuery->id,
+                'kordinat_long' => $request->kordinat_long[$index],
+                'kordinat_lat' => $value,
+                'kordinat_sisi' => $request->kordinat_sisi[$index],
+            ]);
+        }
 
 
         PernyataanPenguasaan::where('surat_permohonan_id', $id)->update([

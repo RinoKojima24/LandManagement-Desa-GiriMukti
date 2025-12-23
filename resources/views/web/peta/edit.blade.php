@@ -239,20 +239,41 @@ input[type="file"] {
                         <input type="datetime-local" name="tanggal_pengukuran" id="tanggal_pengukuran" value="{{ old('tanggal_pengukuran', $peta->tanggal_pengukuran) }}" class="form-control">
                     </div>
                     <div class="form-group col-sm-6">
+                        <label for="">Pilih Warga</label>
+                        <select name="warga_id" id="warga_id" class="form-control">
+                            @foreach ($warga_list as $a)
+                                <option value="{{ $a->id }}" {{ old('warga_id', @$warga->id) == $a->id ? 'selected' : '' }}>{{ $a->nama_petugas }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="">Pilih RT</label>
+                        <select name="rt_id" id="rt_id" class="form-control">
+                            @foreach ($list_rt as $a)
+                                <option value="{{ $a->id }}" {{ old('rt_id', @$peta->rt_id) == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
+                            @endforeach
+                        </select>
+
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <label for="">Nama Pemilik<span class="required">*</span></label>
+                        <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan', @$peta->peruntukan) }}</textarea>
+                    </div>
+                    <div class="form-group col-sm-6">
                         <label for="">Skala</label>
-                        <input type="text" name="skala" id="skala" value="{{ old('skala', $peta->skala) }}" class="form-control">
+                        <input type="text" name="skala" id="skala" value="{{ old('skala', @$peta->skala) }}" class="form-control">
                     </div>
                     <div class="form-group col-sm-6">
                         <label for="">Nama Jalan</label>
-                        <input type="text" name="nama_jalan" id="nama_jalan" value="{{ old('nama_jalan', $peta->nama_jalan) }}" class="form-control">
+                        <input type="text" name="nama_jalan" id="nama_jalan" value="{{ old('nama_jalan', @$peta->nama_jalan) }}" class="form-control">
                     </div>
                     <div class="form-group col-sm-6">
                         <label for="">Penjelasan</label>
-                        <textarea name="penjelasan" id="penjelasan" class="form-control"  cols="30" rows="10">{{ old('penjelasan', $peta->penjelasan) }}</textarea>
+                        <textarea name="penjelasan" id="penjelasan" class="form-control"  cols="30" rows="10">{{ old('penjelasan', @$peta->penjelasan) }}</textarea>
                     </div>
                     <div class="form-group col-sm-6">
                         <label for="">Alamat</label>
-                        <textarea name="alamat" id="alamat" class="form-control"  cols="30" rows="10">{{ old('alamat', $peta->alamat) }}</textarea>
+                        <textarea name="alamat" id="alamat" class="form-control"  cols="30" rows="10">{{ old('alamat', @$peta->alamat) }}</textarea>
                     </div>
 
                     <div class="form-group col-sm-12">
@@ -569,18 +590,14 @@ input[type="file"] {
                     </div> --}}
                     <div class="form-group col-sm-6">
                         <label for="">Titik Kordinat<span class="required">*</span></label>
-                        <input type="hidden" name="user_id" value="{{ $warga->id }}">
+                        <input type="hidden" name="user_id" value="{{ @$warga->id }}">
 
                         <input type="text" name="titik_kordinat" readonly id="marker" value="{{ old('titik_kordinat', $peta->titik_kordinat) }}" placeholder="lat,lng">
-                        <textarea id="polygon" style="display: none;" id="titik_kordinat_polygon" name="titik_kordinat_polygon" rows="6" placeholder="Polygon coordinates">{{ old('tanggal_pengukuran') }}</textarea>
+                        <textarea id="polygon" style="display: none;" id="titik_kordinat_polygon" name="titik_kordinat_polygon" rows="6" placeholder="Polygon coordinates">{{ old('titik_kordinat_polygon') }}</textarea>
                     </div>
                     {{-- <div class="form-group col-sm-12">
                         <label for="">Tanggal Pengukuran<span class="required">*</span></label>
                         <input type="date" name="tanggal_pengukuran" placeholder="Tanggal Pengukuran" value="{{ old('tanggal_pengukuran') }}" class="form-control" id="tanggal_pengukuran">
-                    </div>
-                    <div class="form-group col-sm-12">
-                        <label for="">Peruntukan<span class="required">*</span></label>
-                        <textarea name="peruntukan" id="peruntukan" class="form-control" cols="10" rows="5">{{ old('peruntukan') }}</textarea>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="">Status<span class="required">*</span></label>
@@ -892,6 +909,7 @@ input[type="file"] {
             }
 
             if(firstofall == 0) {
+                /*
                 fetch("{{ asset('storage/rt/tanah_69314fb496362.geojson') }}")
                     .then(res => res.json())
                     .then(geojson => {
@@ -911,8 +929,36 @@ input[type="file"] {
                         });
 
                         rtLayer.bindPopup("RT. 15").openPopup();
-                });
+                });*/
 
+                fetch('{{ asset("$peta->titik_kordinat_polygon") }}')
+                    .then(res => res.json())
+                    .then(geojson => {
+                        const layer = L.geoJSON(geojson, {
+                        interactive: false,
+                        style: feature => ({
+                            color: '#3388ff',
+                            weight: 2,
+                            fillOpacity: 0.4
+                        }),
+                        onEachFeature: (feature, layer) => {
+                            // popup menampilkan atribut (dbf fields)
+                            if (feature.properties) {
+                            const props = feature.properties;
+                            let html = '<table>';
+                            for (const key in props) {
+                                html += `<tr><th>${key}</th><td>${props[key]}</td></tr>`;
+                            }
+                            html += '</table>';
+                            layer.bindPopup(html);
+                            }
+                        }
+                        }).addTo(map);
+
+                        // zoom ke bounds layer
+                        map.fitBounds(layer.getBounds());
+                    })
+                    .catch(err => console.error('Gagal load GeoJSON:', err));
                     firstofall = 1;
             }
         }

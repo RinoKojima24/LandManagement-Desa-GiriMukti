@@ -921,7 +921,17 @@
             <div class="section" style="margin-top: 30px;">
                 <h4>D. SKET LOKASI</h4>
                 <div style="min-height: 250px; border: 1px solid #ccc; background-color: #f9f9f9; padding: 5px;">
-                    </div>
+                    <center>
+                        <br>
+                        <img style="height: 200px;" src="{{ $query->BeritaAcara->sket_lokasi }}" alt="">
+                        <br>
+                    </center>
+                        <ul>
+                            @foreach ($query->BeritaAcara->lokasi as $lo)
+                                <li>{{ $lo->kordinat_long }}, {{ $lo->kordinat_lat }} | {{ $lo->kordinat_sisi }}</li>
+                            @endforeach
+                        </ul>
+                </div>
             </div>
 
         </div> </body>

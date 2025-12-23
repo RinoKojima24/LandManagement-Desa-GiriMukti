@@ -19,7 +19,7 @@
     <div class="mb-4">
         <div class="d-flex justify-content-between">
             <div class="d-flex align-items-center mb-3">
-                <a href="{{ url('tanah') }}" class="text-decoration-none text-dark me-3">
+                <a href="{{ url('tanah?pemilik='.($peta->user_id ?? 0) ) }}" class="text-decoration-none text-dark me-3">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <h5 class="mb-0 fw-bold">Detail Data Peta</h5>
@@ -71,6 +71,7 @@
                 </div>
                 <div class="col-md-6 col-sm-12">
                     <h1 style="font-size: 30px;"><b>{{ $peta->SuratUkur->kecamatan ?? "" }}, {{ $peta->SuratUkur->provinsi ?? "" }}, Indonesia</b></h1>
+                    <h2>Pemilik : {{ $peta->peruntukan }}</h2>
                     <p>{{ $peta->alamat }} <br> Lat {{ $kordinat[0] }} Long {{ $kordinat[1] }} <br> {{ date('d/m/Y, H:i:s', strtotime($peta->tanggal_pengukuran)) }}</p>
 
                 </div>

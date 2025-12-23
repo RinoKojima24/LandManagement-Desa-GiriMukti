@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nomor_bidang');
             $table->unsignedBigInteger('surat_permohonan_id');
+            $table->unsignedBigInteger('rt_id')->nullable();
+
             $table->string('luas');
             $table->string('status');
             $table->string('panjang');

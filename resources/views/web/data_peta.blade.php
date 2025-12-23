@@ -36,11 +36,19 @@
         <!-- Search Box -->
         <form action="{{ route('data.peta') }}" method="GET" class="mb-3">
             <div class="input-group">
+                <input type="hidden" name="pemilik" value="{{ @$_GET['pemilik'] }}">
                 <input type="text"
                        name="search"
                        class="form-control"
                        placeholder="Pencarian..."
                        value="{{ request('search') }}">
+                @isset($_GET['pemilik'])
+                    <select name="rt_id" id="rt_id" class="form-control">
+                        @foreach ($list_rt as $a)
+                            <option value="{{ $a->id }}" {{ Request('rt_id') == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
+                        @endforeach
+                    </select>
+                @endisset
                 <button class="btn btn-success" type="submit">
                     <i class="fas fa-search me-1"></i> Cari
                 </button>
@@ -76,6 +84,8 @@
                     @endphp
 
                     <h1 style="font-size: 20px;"><b>{{ $item->SuratUkur->kecamatan ?? "" }}, {{ $item->SuratUkur->provinsi ?? "" }}, Indonesia</b></h1>
+                    <h2>Pemilik : {{ $item->peruntukan }}</h2>
+
                     <p><br> Lat {{ $kordinat[0] }} <br> Long {{ $kordinat[1] }} <br></p>
                     <hr>
                     <p>{{ date('d/m/Y, H:i:s', strtotime($item->tanggal_pengukuran)) }}</p>
@@ -108,6 +118,17 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="5">
+                            <p class="p-3">Tanpa Pemilik</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{{ url('tanah?pemilik=0') }}"
+                                class="text-teal-600 hover:text-teal-900 font-medium">
+                                Lihat Detail
+                            </a>
+                        </td>
+                    </tr>
                     @forelse ($warga as $item)
                         <tr>
                         <td class="px-6 py-4">
