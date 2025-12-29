@@ -132,7 +132,7 @@ Route::middleware('guest')->group(function () {
             $features = [];
             $kordinat_polygon_array = [];
 
-            // dd($valuenya);
+            // dd($valuenya);s
 
             $nama = $geojson['features'][$ab]['properties']['Nama'];
             $luas = $geojson['features'][$ab]['properties']['Luas'];

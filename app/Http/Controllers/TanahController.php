@@ -315,6 +315,19 @@ public function data(Request $request){
             }
 
         }
+
+        if(Request('rt')) {
+            $rt_data = PetaTanah::with([
+                    'PendaftaranPertama',
+                    'PendaftaranPeralihan',
+                    'SuratUkur'
+                ])->where('rt_id', Request('rt'))->get();
+            return response()->json([
+                'status' => "Berhasil",
+                'data' => $rt_data,
+            ]);
+        }
+
         $rt = Rt::orderBy('created_at', 'ASC')->get();
 
         $data['rtList'] = null;

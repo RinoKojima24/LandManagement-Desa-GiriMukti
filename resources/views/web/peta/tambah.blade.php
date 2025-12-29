@@ -6,7 +6,7 @@
     <title>Tambah Data Peta Tanah</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
         html, body {
@@ -180,9 +180,33 @@ input[type="file"] {
             <option value="street">Peta Biasa</option>
             <option value="satellite">Satelit</option>
         </select>
-        <button class="tool-btn" id="togglePanelBtn">Data Tanah</button>
+
+        <select name="" id="pilih_rt">
+            <option disabled selected>Pilih RT</option>
+            @foreach ($list_rt as $a)
+                <option value="{{ $a->id }}">{{ $a->nama }}</option>
+            @endforeach
+        </select>
+
+
         <button class="tool-btn" onclick="goToMyLocation()">📍 Lokasi Saya</button>
-        <button class="tool-btn" onclick="addMarkerMode()">📌 Tambah Marker</button>
+        <button class="tool-btn" id="togglePanelBtn">Data Tanah</button>
+        <select name="" id="tools_poly" class="form-control">
+            <option value="" disabled selected>Pilih Tools</option>
+            <option value="main_marker">Tambah Marker</option>
+            <optgroup label="Polygon">
+                <option value="0_1">⬛ Polygon Mode</option>
+                <option value="0_2">✔ Selesai Polygon</option>
+                <option value="0_3">🗑 Hapus Polygon</option>
+            </optgroup>
+
+            <optgroup label="Buat Jalan">
+                <option value="1_1">🛣 Jalan Mode</option>
+                <option value="1_2">✔ Selesai Jalan</option>
+                <option value="1_3">🗑 Hapus Jalan</option>
+            </optgroup>
+        </select>
+        {{-- <button class="tool-btn" onclick="addMarkerMode()">📌 Tambah Marker</button>
         <hr>
         <button class="tool-btn" onclick="polygonMode()">⬛ Polygon Mode</button>
         <button class="tool-btn" onclick="finishPolygon()">✔ Selesai Polygon</button>
@@ -190,7 +214,7 @@ input[type="file"] {
         <hr>
         <button class="tool-btn" onclick="jalanMode()">🛣 Jalan Mode</button>
         <button class="tool-btn" onclick="finishJalan()">✔ Selesai Jalan</button>
-        <button class="tool-btn" onclick="deleteJalan()">🗑 Hapus Jalan</button>
+        <button class="tool-btn" onclick="deleteJalan()">🗑 Hapus Jalan</button> --}}
 
     </div>
 
@@ -356,7 +380,7 @@ input[type="file"] {
                         <center><h3>NAMA PEMEGANG HAK</h3></center>
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
-                        <input type="text" name="nama_pemegang_hak" class="form-control" placeholder="Nama Pemegang Hak" value="{{ $warga->nama_petugas }}" id="nama_pemegang_hak">
+                        <input type="text" name="nama_pemegang_hak" class="form-control" placeholder="Nama Pemegang Hak" value="{{ @$warga->nama_petugas }}" id="nama_pemegang_hak">
                     </div>
                     <div class="form-group col-sm-12 col-md-6">
                         <input type="date" name="tanggal_lahir_akta_pendirian" class="form-control" placeholder="Tanggal lahir / akta pendirian" id="tanggal_lahir_akta_pendirian">
@@ -515,7 +539,7 @@ input[type="file"] {
                     </div> --}}
                     <div class="form-group col-sm-6">
                         <label for="">Titik Kordinat<span class="required">*</span></label>
-                        <input type="hidden" name="user_id" value="{{ $warga->id }}">
+                        <input type="hidden" name="user_id" value="{{ @$warga->id }}">
                         <input type="text" name="titik_kordinat" readonly id="marker" placeholder="lat,lng">
                         <textarea id="polygon" style="display: none;" id="titik_kordinat_polygon" name="titik_kordinat_polygon" rows="6" placeholder="Polygon coordinates">{{ old('tanggal_pengukuran') }}</textarea>
                     </div>
@@ -713,6 +737,7 @@ input[type="file"] {
 
         //Maps
         const map = L.map('map').setView([-2.5489, 118.0149], 5);
+        window.allPolygonLayer = L.featureGroup().addTo(map);
 
         // Layer BIASA
         const streetLayer = L.tileLayer(
@@ -1078,9 +1103,144 @@ input[type="file"] {
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         $(document).ready(function() {
+            $('#tools_poly').select2();
+            const tools_poly = {
+                'main_marker' : addMarkerMode,
+                '0_1' : polygonMode,
+                '0_2' : finishPolygon,
+                '0_3' : deletePolygon,
+
+                '1_1' : jalanMode,
+                '1_2' : finishJalan,
+                '1_3' : deleteJalan,
+
+            };
+            $('#tools_poly').change(function() {
+                // console.log(tools_poly);
+                tools_poly[$(this).val()]();
+            });
+
+            // $('#pilih_rt').change(function() {
+            //     const requestData = {
+            //         rt: $(this).val(),
+            //     };
+
+            //     $.get(`{{ url("tanah/create") }}?rt=${requestData['rt']}`, requestData, function(response) {
+            //         // Fungsi ini dijalankan jika permintaan SUKSES
+            //         console.log('Data berhasil diterima:', response);
+
+            //         // Contoh: menampilkan nama pengguna
+            //         $.each(response.data, function(index, item) {
+            //             if (!item.titik_kordinat_polygon) return;
+            //             window.allPolygonLayer = L.featureGroup().addTo(map);
+            //             $.getJSON(item.titik_kordinat_polygon, function(geojson) {
+
+            //                 const polygon = L.geoJSON(geojson, {
+            //                     style: {
+            //                         color: "#007bff",
+            //                         weight: 2,
+            //                         opacity: 1,
+            //                         fillOpacity: 0.4
+            //                     },
+            //                     onEachFeature: function(feature, layer) {
+            //                         layer.bindPopup(`
+            //                             <b>ID:</b> ${item.id}<br>
+            //                             <b>Peruntukan:</b> ${item.peruntukan ?? '-'}
+            //                         `);
+            //                     }
+            //                 });
+
+            //                 polygon.addTo(window.allPolygonLayer);
+
+            //                 // label tengah polygon
+            //                 const center = polygon.getBounds().getCenter();
+
+            //                 L.marker(center, {
+            //                     interactive: false,
+            //                     icon: L.divIcon({
+            //                         className: 'rt-label',
+            //                         html: `<span>${item.id}</span>`,
+            //                         iconSize: [60, 20],
+            //                         iconAnchor: [30, 10]
+            //                     })
+            //                 }).addTo(window.allPolygonLayer);
+
+            //                 // 🔥 fit bounds hanya SEKALI setelah semua loaded
+            //                 if (window.allPolygonLayer.getLayers().length > 0) {
+            //                     map.fitBounds(window.allPolygonLayer.getBounds(), {
+            //                         padding: [30, 30]
+            //                     });
+            //                 }
+            //             });
+            //         });
+
+            //         $('#user-info').text('Nama: ' + response.name);
+
+            //     }, 'json') // Mengharapkan respons dalam format JSON
+            //     .fail(function(jqXHR, textStatus, errorThrown) {
+            //         // Ini adalah cara untuk menangani KEGAGALAN (error handling)
+            //         console.error('Terjadi kesalahan:', textStatus, errorThrown);
+            //     });
+            // });
+
+            $('#pilih_rt').change(function() {
+
+                window.allPolygonLayer.clearLayers();
+
+                $.get(`{{ url("tanah/create") }}?rt=${$(this).val()}`, function(response) {
+                    console.log(response);
+
+                    if(response.data.length == 0) {
+                        alert("Data Tidak ditemukan!");
+                    } else {
+                        $.each(response.data, function(index, item) {
+                            // console.log(item.titik_kordinat_polygon);
+                            // if (!item.titik_kordinat_polygon) return;
+                            let path_geojson = "{{ url('') }}/" + item.titik_kordinat_polygon;
+                            // console.log(path_geojson);
+                            $.getJSON(path_geojson, function(geojson) {
+                                // console.log(geojson);
+                                const polygon = L.geoJSON(geojson, {
+                                    style: {
+                                        color: "#007bff",
+                                        weight: 2,
+                                        fillOpacity: 0.1
+                                    },
+                                    onEachFeature: function(feature, layer) {
+                                        layer.bindPopup(`<b>Pemilik:</b> ${item.peruntukan} <br> <b>Luas: </b> ${item.pendaftaran_pertama.luas_surat_ukur ?? '-'}`);
+                                    }
+                                });
+
+                                polygon.addTo(window.allPolygonLayer);
+
+                                const center = polygon.getBounds().getCenter();
+
+                                L.marker(center, {
+                                    // interactive: false, <span>${item.peruntukan}</span>
+                                    icon: L.divIcon({
+                                        className: 'rt-label',
+                                        html: ``,
+                                        iconSize: [60, 20],
+                                        iconAnchor: [30, 10]
+                                    })
+                                }).bindPopup(`<b>Pemilik:</b> ${item.peruntukan ?? '-'} <br> <b>Luas: </b> ${item.pendaftaran_pertama.luas_surat_ukur ?? '-'}`).addTo(window.allPolygonLayer);
+                                // }).bindPopup(`<b>Pemilik:</b> ${item.peruntukan ?? '-'}`).addTo(window.allPolygonLayer);
+
+                                // 🔥 AMAN
+                                map.fitBounds(window.allPolygonLayer.getBounds(), {
+                                    padding: [30, 30]
+                                });
+                            });
+                        });
+                    }
+                });
+            });
+
+
             document.getElementById('foto_peta').addEventListener('change', function(e) {
                 console.log("ASD");
                 const file = e.target.files[0];
